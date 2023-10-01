@@ -2,46 +2,14 @@ const express = require("express")
 const router = express.Router()
 
 const Joi = require("joi")
+const { Session } = require("../../../src/models/session")
 const dbHelper = {
     account: require("../../../src/db/account")
 }
 
-router.use("/", async (req, res, next) => {
-    const accountsDb = req.app.get("db").accounts
-
-    const authHeader = req.headers["authorization"]
-    const bearer = "Bearer "
-    if (!authHeader.startsWith(bearer)) {
-        res.status(403).json({
-            success: false,
-            message: "Missing authorization"
-        })
-        return
-    }
-    const sessionToken = authHeader.slice(bearer.length)
-
-    console.log(sessionToken)
-    let validatedAccount
-    try {
-        validatedAccount = await dbHelper.account.validateSessionToken(accountsDb, sessionToken)
-    } catch (e) {
-        console.log(e)
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        })
-        return
-    }
-    if (!validatedAccount) {
-        res.status(403).json({
-            success: false,
-            message: "Invalid authorization"
-        })
-        return
-    }
-    req.app.account = validatedAccount
-    next()
-})
+// /account endpoint requires session auth
+const { sessionAuth } = require("../../../src/middleware/auth")
+router.use("/", sessionAuth)
 
 router.get("/", (req, res) => {
     const account = req.app.account
@@ -54,7 +22,9 @@ router.get("/", (req, res) => {
     }
     res.json({
         success: true,
-        account: accountData
+        data: {
+            account: accountData
+        }
     })
 })
 

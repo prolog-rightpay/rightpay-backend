@@ -41,7 +41,6 @@ router.post("/", async (req, res) => {
         return e
     }
     
-    console.log(passwordValidation)
     if (!passwordValidation.success) {
         res.status(422).json({
             success: false,
@@ -67,7 +66,9 @@ router.post("/", async (req, res) => {
 
     res.status(200).json({
         success: true,
-        session_token: sessionToken
+        data: {
+            session_token: sessionToken
+        }
     })
 })
 
