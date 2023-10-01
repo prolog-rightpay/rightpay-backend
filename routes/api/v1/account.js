@@ -25,7 +25,9 @@ function determineInvalidKey(error) {
 router.post("/signup", (req, res) => {
     const schema = Joi.object({
         email: Joi.string().required(),
-        password: Joi.string().pattern(passwordRegex).required()
+        password: Joi.string().pattern(passwordRegex).required(),
+        first_name: Joi.string(),
+        last_name: Joi.string()
     })
     const validate = schema.validate(req.body)
 
@@ -45,7 +47,9 @@ router.post("/signup", (req, res) => {
     const accountsDb = req.app.get("db").accounts
     dbHelper.account.newAccount(accountsDb, {
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        firstName: req.body.first_name,
+        lastName: req.body.last_name
     })
     .then(result => {
         if (!result.success) {
