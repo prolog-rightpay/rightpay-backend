@@ -4,7 +4,6 @@ const router = express.Router()
 const Joi = require("joi")
 
 const passwordRegex = new RegExp("^[a-zA-Z0-9]{3,30}$")
-
 const dbHelper = {
     account: require("../../../src/db/account")
 }
@@ -75,7 +74,7 @@ router.post("/signup", (req, res) => {
     })
 })
 
-router.post("/signin", (req, res) => {
+router.post("/signin", async (req, res) => {
     const schema = Joi.object({
         email: Joi.string().required(),
         password: Joi.string().required()
@@ -94,10 +93,48 @@ router.post("/signin", (req, res) => {
         })
         return
     }
+
+    const accountsDb = req.app.get("db").accounts
+
+    let passwordValidation
+    try {
+        passwordValidation = await dbHelper.account.validatePassword(accountsDb, req.body.email, req.body.password)
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        })
+        return e
+    }
+    
+    console.log(passwordValidation)
+    if (!passwordValidation.success) {
+        res.status(422).json({
+            success: false,
+            message: "Invalid"
+        })
+        return
+    }
+
+    const account = passwordValidation.account
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress
+
+    let sessionToken
+    try {
+        sessionToken = await dbHelper.account.newSessionToken(accountsDb, account.id, ip, "api.signin")
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        })
+        return
+    }
+
     res.status(200).json({
         success: true,
-        message: "Logged in",
-        session_token: "xxx"
+        session_token: sessionToken
     })
 })
 
