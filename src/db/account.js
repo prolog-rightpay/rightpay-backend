@@ -84,7 +84,7 @@ exports.validatePassword = validatePassword
  */
 function generateToken() {
     return new Promise((resolve, reject) => {
-        crypto.randomBytes(48, (err, buffer) => {
+        crypto.randomBytes(24, (err, buffer) => {
             if (err) { reject(err) }
             else { resolve(buffer.toString("hex")) }
         })
@@ -113,3 +113,16 @@ async function newSessionToken(db, id, ipAddress = null, source = null) {
     return sessionToken
 }
 exports.newSessionToken = newSessionToken
+
+async function validateSessionToken(db, sessionToken) {
+    const accountSessionsColl = db.collection("account_sessions")
+    const session = await accountSessionsColl.findOne({ session_token: sessionToken })
+    if (!session || !session.user_id) {
+        return null
+    }
+    const accountsColl = db.collection("accounts")
+    const accountBSON = await accountsColl.findOne({ id: session.user_id })
+    const account = accountFromBSON(accountBSON)
+    return account
+}
+exports.validateSessionToken = validateSessionToken
