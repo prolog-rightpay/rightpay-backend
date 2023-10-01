@@ -6,6 +6,18 @@ const app = express()
 
 const log = require("./src/log")
 
+const db = require("./src/db")
+db.connect()
+.then(con => {
+    log.info("connected to mongodb")
+    app.set("db", con.databases)
+})
+.catch(err => {
+    console.log(err)
+    log.error("failed to connect to mongodb, closing server")
+    process.exit(1)
+})
+
 // setup the logger, morgan is the express logger
 const morgan = require("morgan")
 const accessLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), { flags: "a" })
