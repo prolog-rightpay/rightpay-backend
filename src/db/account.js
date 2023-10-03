@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt")
 const { v4: uuidv4 } = require("uuid")
 
 const { Account } = require("../models/account")
+const { Session } = require("../models/session")
 
 const bcryptSaltRounds = 10
 
@@ -41,6 +42,14 @@ function accountFromBSON(bson) {
     account.lastName = bson.last_name
     account.dateCreated = bson.date_created
     return account
+}
+
+function sessionFromBSON(bson) {
+    const session = new Session(bson.session_token, bson.account_id)
+    session.dateCreated = bson.date_created
+    session.ipAddress = bson.ip_address
+    session.creationSource = bson.creation_source
+    return session
 }
 
 /**
@@ -104,9 +113,11 @@ async function newSessionToken(db, id, ipAddress = null, source = null) {
     const dateCreated = new Date()
     const sessionToken = await generateToken()
     await accountSessionsColl.insertOne({
-        user_id: id,
+        valid: true,
+        account_id: id,
         session_token: sessionToken,
         date_created: dateCreated,
+        date_invalidated: null,
         ip_address: ipAddress,
         creation_source: source
     })
@@ -116,13 +127,33 @@ exports.newSessionToken = newSessionToken
 
 async function validateSessionToken(db, sessionToken) {
     const accountSessionsColl = db.collection("account_sessions")
-    const session = await accountSessionsColl.findOne({ session_token: sessionToken })
-    if (!session || !session.user_id) {
+    const sessionBSON = await accountSessionsColl.findOne({ session_token: sessionToken, valid: true })
+    if (!sessionBSON || !sessionBSON.account_id) {
         return null
     }
+    const session = sessionFromBSON(sessionBSON)
+
     const accountsColl = db.collection("accounts")
-    const accountBSON = await accountsColl.findOne({ id: session.user_id })
+    const accountBSON = await accountsColl.findOne({ id: session.accountId })
+    if (!accountBSON) {
+        return null
+    }
     const account = accountFromBSON(accountBSON)
-    return account
+    return {
+        session: session,
+        account: account
+    }
 }
 exports.validateSessionToken = validateSessionToken
+
+async function invalidateSessionToken(db, sessionToken) {
+    const accountSessionsColl = db.collection("account_sessions")
+    const docUpdate = {
+        $set: {
+            valid: false,
+            date_invalidated: new Date()
+        }
+    }
+    await accountSessionsColl.updateOne({ session_token: sessionToken }, docUpdate, { upsert: false })
+}
+exports.invalidateSessionToken = invalidateSessionToken

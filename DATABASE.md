@@ -31,7 +31,7 @@ Collection that holds all active session tokens used to make authenticated API c
 
 |Key|Type|Description|Required|
 |-|-|-|-|
-|`user_id`|`string<uuid>`|User ID that owns the session token.|Yes|
+|`account_id`|`string<uuid>`|User ID that owns the session token.|Yes|
 |`session_token`|`string`|Session token used to make API calls.|Yes|
 |`date_created`|`date`|Date when the session token was created.|Yes|
 |`ip_address`|`string`|IP address that requested a new session token.|Yes|
