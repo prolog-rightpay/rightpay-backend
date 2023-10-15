@@ -44,7 +44,7 @@ router.post("/", async (req, res) => {
     if (!passwordValidation.success) {
         res.status(422).json({
             success: false,
-            message: "Invalid"
+            message: "Invalid email or password."
         })
         return
     }

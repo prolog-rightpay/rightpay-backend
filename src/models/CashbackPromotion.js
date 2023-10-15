@@ -21,6 +21,11 @@ class CashbackPromotion {
     /** @type {number?} Maximum spending amount of promotion. */
     spendingMax = null
 
+    /** @type {float?} Cashback percentage. */
+    percentage = null
+    /** @type {number?} Cashback currency amount. */
+    reimburseAmount = null
+
     /** @type {boolean?} Is manual enrollment of promotion necessary to apply. */
     enrollmentRequired = null
     /** @type {boolean?} Is the promotion an introductory offer. */

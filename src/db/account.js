@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt")
 const { v4: uuidv4 } = require("uuid")
 
 const { Account } = require("../models/account")
-const { Session } = require("../models/session")
+const { Session } = require("../models/Session")
 
 const bcryptSaltRounds = 10
 
