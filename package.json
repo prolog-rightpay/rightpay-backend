@@ -1,7 +1,7 @@
 {
-  "name": "ritepay-node",
+  "name": "rightpay-backend",
   "version": "0.1.0",
-  "description": "The backend for the RitePay mobile application.",
+  "description": "The backend for the RightPay mobile application.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
