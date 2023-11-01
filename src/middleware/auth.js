@@ -7,7 +7,7 @@ async function sessionAuth(req, res, next) {
 
     const authHeader = req.headers["authorization"]
     const bearer = "Bearer "
-    if (!authHeader.startsWith(bearer)) {
+    if (!authHeader?.startsWith(bearer)) {
         res.status(403).json({
             success: false,
             message: "Missing authorization"
