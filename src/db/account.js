@@ -3,7 +3,7 @@ const crypto = require("crypto")
 const bcrypt = require("bcrypt")
 const { v4: uuidv4 } = require("uuid")
 
-const { Account } = require("../models/account")
+const { Account } = require("../models/Account")
 const { Session } = require("../models/Session")
 
 const bcryptSaltRounds = 10
