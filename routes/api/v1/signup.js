@@ -3,13 +3,14 @@ const router = express.Router()
 
 const Joi = require("joi")
 const { determineInvalidKey } = require("../../../src/express")
+const { Account } = require("../../../src/models/Account")
 
 const passwordRegex = new RegExp("^[a-zA-Z0-9]{3,30}$")
 const dbHelper = {
     account: require("../../../src/db/account")
 }
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
     const schema = Joi.object({
         email: Joi.string().required(),
         password: Joi.string().pattern(passwordRegex).required(),
@@ -32,13 +33,12 @@ router.post("/", (req, res) => {
     }
 
     const accountsDb = req.app.get("db").accounts
-    dbHelper.account.newAccount(accountsDb, {
-        email: req.body.email,
-        password: req.body.password,
-        firstName: req.body.first_name,
-        lastName: req.body.last_name
-    })
-    .then(result => {
+    const { email, password, first_name: firstName, last_name: lastName } = req.body
+
+    try {
+        const account = new Account(null, email, firstName, lastName)
+        const result = await dbHelper.account.newAccount(accountsDb, account, password)
+
         if (!result.success) {
             let message = "Account creation failure"
             if (result.error == "email_exists") { message = "Email already in use" }
@@ -52,14 +52,13 @@ router.post("/", (req, res) => {
             success: true,
             message: "Account created"
         })
-    })
-    .catch(err => {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             success: false,
             message: "A server error occurred"
         })
-    })
+    }
 })
 
 module.exports = router

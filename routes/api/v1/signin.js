@@ -3,6 +3,7 @@ const router = express.Router()
 
 const Joi = require("joi")
 const { determineInvalidKey } = require("../../../src/express")
+const { Session } = require("../../../src/models/Session")
 
 const dbHelper = {
     account: require("../../../src/db/account")
@@ -53,9 +54,17 @@ router.post("/", async (req, res) => {
     const account = passwordValidation.account
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress
 
-    let sessionToken
     try {
-        sessionToken = await dbHelper.account.newSessionToken(accountsDb, account.id, ip, "api.signin")
+        const session = new Session(account.id, ip, "api.signin")
+        await session.generateToken()
+        await dbHelper.account.newSession(accountsDb, session)
+
+        res.status(200).json({
+            success: true,
+            data: {
+                session_token: session.token
+            }
+        })
     } catch (e) {
         console.log(e)
         res.status(500).json({
@@ -64,13 +73,6 @@ router.post("/", async (req, res) => {
         })
         return
     }
-
-    res.status(200).json({
-        success: true,
-        data: {
-            session_token: sessionToken
-        }
-    })
 })
 
 module.exports = router

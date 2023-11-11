@@ -1,3 +1,5 @@
+const crypto = require("crypto")
+
 /**
  * Sign-in session.
  */
@@ -26,7 +28,7 @@ class Session {
      * @param {date?} dateCreated If not provided will use initialization date.
      * @param {number?} age Age of the session in seconds. Default is 2 years.
      */
-    constructor(accountId, ipAddress, creationSource, dateCreated = undefined, age=60*60*24*31*12*2) {
+    constructor(accountId, ipAddress, creationSource, dateCreated = null, age=60*60*24*31*12*2) {
         this.accountId = accountId
         this.ipAddress = ipAddress
         this.creationSource = creationSource
@@ -42,7 +44,10 @@ class Session {
         return new Promise((resolve, reject) => {
             crypto.randomBytes(24, (err, buffer) => {
                 if (err) { reject(err) }
-                else { resolve(buffer.toString("hex")) }
+                else {
+                    this.token = buffer.toString("hex")
+                    resolve()
+                }
             })
         })
     }
@@ -51,14 +56,16 @@ class Session {
      * Determine the date the session expires based on date created and age.
      */
     getDateExpires() {
-
+        const date = new Date()
+        date.setSeconds(date.getSeconds() + this.age)
+        return date
     }
 
     /**
      * Determine if the current session is active based on date.
      */
     isActive() {
-
+        return this.getDateExpires() > new Date()
     }
 }
 exports.Session = Session

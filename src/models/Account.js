@@ -19,7 +19,7 @@ class Account {
      * @param {string} lastName 
      * @param {date?} dateCreated If not given will use date of initialization.
      */
-    constructor(id, email, firstName, lastName, dateCreated = undefined) {
+    constructor(id, email, firstName, lastName, dateCreated = null) {
         this.id = id || uuidv4()
         this.email = email
         this.firstName = firstName

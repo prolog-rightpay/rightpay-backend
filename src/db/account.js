@@ -1,14 +1,11 @@
-const crypto = require("crypto")
-
 const bcrypt = require("bcrypt")
-const { v4: uuidv4 } = require("uuid")
 
 const { Account } = require("../models/Account")
 const { Session } = require("../models/Session")
 
 const bcryptSaltRounds = 10
 
-async function newAccount(db, account) {
+async function newAccount(db, account, password) {
     const accountsColl = db.collection("accounts")
 
     const existing = await accountsColl.findOne({ email: account.email })
@@ -19,16 +16,14 @@ async function newAccount(db, account) {
         }
     }
 
-    const userId = uuidv4()
-    const dateCreated = new Date()
-    const hashedPassword = await bcrypt.hash(account.password, bcryptSaltRounds)
+    const hashedPassword = await bcrypt.hash(password, bcryptSaltRounds)
     await accountsColl.insertOne({
-        id: userId,
+        id: account.id,
         email: account.email,
         password: hashedPassword,
         first_name: account.firstName,
         last_name: account.lastName,
-        date_created: dateCreated
+        date_created: account.dateCreated
     })
     return {
         success: true
@@ -37,18 +32,20 @@ async function newAccount(db, account) {
 exports.newAccount = newAccount
 
 function accountFromBSON(bson) {
-    const account = new Account(bson.id, bson.email)
-    account.firstName = bson.first_name
-    account.lastName = bson.last_name
-    account.dateCreated = bson.date_created
+    const { id, email,
+        first_name: firstName, last_name: lastName,
+        date_created: dateCreated} = bson
+    const account = new Account(id, email, firstName, lastName, dateCreated)
     return account
 }
 
 function sessionFromBSON(bson) {
-    const session = new Session(bson.session_token, bson.account_id)
-    session.dateCreated = bson.date_created
-    session.ipAddress = bson.ip_address
-    session.creationSource = bson.creation_source
+    const { token, account_id: accountId,
+        date_created: dateCreated, age,
+        ip_address: ipAddress, creation_source: creationSource } = bson
+
+    const session = new Session(accountId, ipAddress, creationSource, dateCreated, age)
+    session.token = token
     return session
 }
 
@@ -88,50 +85,35 @@ async function validatePassword(db, email, password) {
 exports.validatePassword = validatePassword
 
 /**
- * Generate a secure token.
- * @returns {Promise<string>} Secure token string.
- */
-function generateToken() {
-    return new Promise((resolve, reject) => {
-        crypto.randomBytes(24, (err, buffer) => {
-            if (err) { reject(err) }
-            else { resolve(buffer.toString("hex")) }
-        })
-    })
-}
-
-/**
  * Add a new session token to the database for a user.
  * @param {*} db MongoDB accounts database object.
  * @param {string} id User ID.
  * @param {string?} ipAddress IP address source of the session token creation request.
  * @param {string?} source Identifier that determines why the session token was created.
  */
-async function newSessionToken(db, id, ipAddress = null, source = null) {
+async function newSession(db, session) {
     const accountSessionsColl = db.collection("account_sessions")
-    
-    const dateCreated = new Date()
-    const sessionToken = await generateToken()
     await accountSessionsColl.insertOne({
-        valid: true,
-        account_id: id,
-        session_token: sessionToken,
-        date_created: dateCreated,
-        date_invalidated: null,
-        ip_address: ipAddress,
-        creation_source: source
+        token: session.token,
+        account_id: session.accountId,
+        date_created: session.dateCreated,
+        age: session.age,
+        ip_address: session.ipAddress,
+        creation_source: session.creationSource
     })
-    return sessionToken
 }
-exports.newSessionToken = newSessionToken
+exports.newSession = newSession
 
 async function validateSessionToken(db, sessionToken) {
     const accountSessionsColl = db.collection("account_sessions")
-    const sessionBSON = await accountSessionsColl.findOne({ session_token: sessionToken, valid: true })
+    const sessionBSON = await accountSessionsColl.findOne({ token: sessionToken })
     if (!sessionBSON || !sessionBSON.account_id) {
         return null
     }
     const session = sessionFromBSON(sessionBSON)
+    if (!session.isActive()) {
+        return null
+    }
 
     const accountsColl = db.collection("accounts")
     const accountBSON = await accountsColl.findOne({ id: session.accountId })
