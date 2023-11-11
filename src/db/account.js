@@ -23,7 +23,8 @@ async function insertAccount(db, account, password) {
         password: hashedPassword,
         first_name: account.firstName,
         last_name: account.lastName,
-        date_created: account.dateCreated
+        date_created: account.dateCreated,
+        is_admin: account.isAdmin
     })
     return {
         success: true
@@ -34,8 +35,8 @@ exports.insertAccount = insertAccount
 function accountFromBSON(bson) {
     const { id, email,
         first_name: firstName, last_name: lastName,
-        date_created: dateCreated} = bson
-    const account = new Account(id, email, firstName, lastName, dateCreated)
+        date_created: dateCreated, is_admin: isAdmin} = bson
+    const account = new Account(id, email, firstName, lastName, dateCreated, isAdmin)
     return account
 }
 

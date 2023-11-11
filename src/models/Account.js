@@ -11,6 +11,8 @@ class Account {
     lastName = null
     /** @type {date} Date that the user account was created. */
     dateCreated = null
+    /** @type {boolean} Does account have admin privileges? Cannot be set through code.  */
+    isAdmin = null
 
     /**
      * @param {string?} id If not given will create new UUIDv4.
@@ -18,13 +20,15 @@ class Account {
      * @param {string} firstName 
      * @param {string} lastName 
      * @param {date?} dateCreated If not given will use date of initialization.
+     * @param {boolean} [isAdmin=false]
      */
-    constructor(id, email, firstName, lastName, dateCreated = null) {
+    constructor(id, email, firstName, lastName, dateCreated = null, isAdmin = false) {
         this.id = id || uuidv4()
         this.email = email
         this.firstName = firstName
         this.lastName = lastName
         this.dateCreated = dateCreated || new Date()
+        this.isAdmin = isAdmin
     }
 }
 exports.Account = Account
