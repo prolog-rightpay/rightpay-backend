@@ -2,8 +2,11 @@ const express = require("express")
 const Joi = require("joi")
 const { insertGlobalIssuer } = require("../../../../../src/db/payment/global/issuer")
 const { determineInvalidKey } = require("../../../../../src/express")
+const { isAdmin } = require("../../../../../src/middleware/admin")
 const { GlobalIssuer } = require("../../../../../src/models/GlobalIssuer")
 const router = express.Router()
+
+router.use("/", isAdmin)
 
 // /account endpoint requires session auth
 
