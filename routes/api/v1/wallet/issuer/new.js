@@ -1,6 +1,6 @@
 const express = require("express")
 const Joi = require("joi")
-const { insertGlobalIssuer } = require("../../../../../src/db/payment/global/issuer")
+const { insertGlobalIssuer } = require("../../../../../src/db/wallet/global/issuer")
 const { determineInvalidKey } = require("../../../../../src/express")
 const { isAdmin } = require("../../../../../src/middleware/admin")
 const { GlobalIssuer } = require("../../../../../src/models/GlobalIssuer")

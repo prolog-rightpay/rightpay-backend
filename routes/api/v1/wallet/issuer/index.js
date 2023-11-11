@@ -1,5 +1,5 @@
 const express = require("express")
-const { issuerFromBIN, issuerFromId, getAllIssuers } = require("../../../../../src/db/payment/global/issuer")
+const { issuerFromBIN, issuerFromId, getAllIssuers } = require("../../../../../src/db/wallet/global/issuer")
 const router = express.Router()
 
 function issuerToJSON(issuer) {
