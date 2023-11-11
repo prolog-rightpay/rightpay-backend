@@ -2,13 +2,11 @@ const express = require("express")
 const router = express.Router()
 
 const Joi = require("joi")
+const { insertAccount } = require("../../../src/db/account")
 const { determineInvalidKey } = require("../../../src/express")
 const { Account } = require("../../../src/models/Account")
 
 const passwordRegex = new RegExp("^[a-zA-Z0-9]{3,30}$")
-const dbHelper = {
-    account: require("../../../src/db/account")
-}
 
 router.post("/", async (req, res) => {
     const schema = Joi.object({
@@ -37,8 +35,8 @@ router.post("/", async (req, res) => {
 
     try {
         const account = new Account(null, email, firstName, lastName)
-        const result = await dbHelper.account.newAccount(accountsDb, account, password)
-
+        const result = await insertAccount(accountsDb, account, password)
+        
         if (!result.success) {
             let message = "Account creation failure"
             if (result.error == "email_exists") { message = "Email already in use" }

@@ -1,12 +1,6 @@
 const express = require("express")
 const router = express.Router()
 
-const Joi = require("joi")
-const { Session } = require("../../../src/models/Session")
-const dbHelper = {
-    account: require("../../../src/db/account")
-}
-
 // /account endpoint requires session auth
 const { sessionAuth } = require("../../../src/middleware/auth")
 router.use("/", sessionAuth)

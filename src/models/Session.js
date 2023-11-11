@@ -10,6 +10,8 @@ class Session {
     accountId = null
     /** @type {date} Date the session was created. */
     dateCreated = null
+    /** @type {date} Date modified, usually modified on made non-active. */
+    dateModified = null
 
     /** @type {number} Age of the session in seconds. Default is 2 years. */
     age = null
@@ -19,6 +21,9 @@ class Session {
     /** @type {string?} Creation source, `api`, etc. */
     creationSource = null
 
+    /** @type {boolean} Is session active, true unless invalidated. */
+    isActive = null
+
     /**
      * Call `await generateToken()` after initialization.
      * @param {string} token If not provided will generate new one.
@@ -27,13 +32,16 @@ class Session {
      * @param {string} creationSource `api`
      * @param {date?} dateCreated If not provided will use initialization date.
      * @param {number?} age Age of the session in seconds. Default is 2 years.
+     * @param {boolean} active Is session active, default `true`.
      */
-    constructor(accountId, ipAddress, creationSource, dateCreated = null, age=60*60*24*31*12*2) {
+    constructor(accountId, ipAddress, creationSource, dateCreated = null, dateModified = null, age=60*60*24*31*12*2, active = true) {
         this.accountId = accountId
         this.ipAddress = ipAddress
         this.creationSource = creationSource
         this.dateCreated = dateCreated || new Date()
+        this.dateModified = dateModified
         this.age = age
+        this.isActive = active
     }
 
     /**
@@ -64,8 +72,8 @@ class Session {
     /**
      * Determine if the current session is active based on date.
      */
-    isActive() {
-        return this.getDateExpires() > new Date()
+    isValid() {
+        return this.isActive && this.getDateExpires() > new Date()
     }
 }
 exports.Session = Session

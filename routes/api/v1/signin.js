@@ -2,12 +2,9 @@ const express = require("express")
 const router = express.Router()
 
 const Joi = require("joi")
+const { validatePassword, insertSession } = require("../../../src/db/account")
 const { determineInvalidKey } = require("../../../src/express")
 const { Session } = require("../../../src/models/Session")
-
-const dbHelper = {
-    account: require("../../../src/db/account")
-}
 
 router.post("/", async (req, res) => {
     const schema = Joi.object({
@@ -33,7 +30,8 @@ router.post("/", async (req, res) => {
 
     let passwordValidation
     try {
-        passwordValidation = await dbHelper.account.validatePassword(accountsDb, req.body.email, req.body.password)
+        passwordValidation = await validatePassword(accountsDb, req.body.email, req.body.password)
+        
     } catch (e) {
         console.log(e)
         res.status(500).json({
@@ -57,7 +55,7 @@ router.post("/", async (req, res) => {
     try {
         const session = new Session(account.id, ip, "api.signin")
         await session.generateToken()
-        await dbHelper.account.newSession(accountsDb, session)
+        await insertSession(accountsDb, session)
 
         res.status(200).json({
             success: true,

@@ -1,6 +1,4 @@
-const dbHelper = {
-    account: require("../db/account")
-}
+const { validateSessionToken } = require("../db/account")
 
 async function sessionAuth(req, res, next) {
     const accountsDb = req.app.get("db").accounts
@@ -16,12 +14,9 @@ async function sessionAuth(req, res, next) {
     }
     const sessionToken = authHeader.slice(bearer.length)
 
-    console.log(accountsDb)
-    console.log(sessionToken)
-
     let validated
     try {
-        validated = await dbHelper.account.validateSessionToken(accountsDb, sessionToken)
+        validated = await validateSessionToken(accountsDb, sessionToken)
     } catch (e) {
         console.log(e)
         res.status(500).json({
@@ -30,7 +25,6 @@ async function sessionAuth(req, res, next) {
         })
         return
     }
-    console.log(validated)
     if (!validated) {
         res.status(403).json({
             success: false,
