@@ -23,7 +23,7 @@ class GlobalPaymentMethod {
 
     /** @type {GlobalPaymentMethodIssuer} Issuer of the card, e.g. American Express. */
     issuer = null
-    /** @type {[CashbackPromotion]} Array of available cashback promotions, active or not. */
-    cashbackPromotions = []
+    /** @type {[CashbackReward]} Array of available cashback rewards, active or not. */
+    cashbackRewards = []
 }
 exports.GlobalPaymentMethod = GlobalPaymentMethod

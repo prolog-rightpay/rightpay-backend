@@ -1,24 +1,24 @@
 /**
- * Cashback promotions tied to generic credit cards.
+ * Cashback rewards tied to generic credit cards.
  */
-class CashbackPromotion {
+class CashbackReward {
     /** @type {string} Internal ID. */
     id = null
-    /** @type {Date} Internal date that the promotion was added to the database. */
+    /** @type {Date} Internal date that the reward was added to the database. */
     dateCreated = null
-    /** @type {Date?} Internal date that the promotion was last modified in the database. */
+    /** @type {Date?} Internal date that the reward was last modified in the database. */
     dateModified = null
 
-    /** @type {string?} ID of admin that created/approved the promotion. */
+    /** @type {string?} ID of admin that created/approved the reward. */
     adminAuthorId = null
-    /** @type {string?} ID of user that originally submitted the promotion, if any. */
+    /** @type {string?} ID of user that originally submitted the reward, if any. */
     userAuthorId = null
 
     /** @type {string} **Set with `setTypePercentage()` or `setTypeReimburse()`.** Can be `percentage` / `reimburse` */
     type = null
-    /** @type {number?} Minimum spending amount to trigger promotion. */
+    /** @type {number?} Minimum spending amount to trigger reward. */
     spendingMin = null
-    /** @type {number?} Maximum spending amount of promotion. */
+    /** @type {number?} Maximum spending amount of reward. */
     spendingMax = null
 
     /** @type {float?} Cashback percentage. */
@@ -26,21 +26,21 @@ class CashbackPromotion {
     /** @type {number?} Cashback currency amount. */
     reimburseAmount = null
 
-    /** @type {boolean?} Is manual enrollment of promotion necessary to apply. */
+    /** @type {boolean?} Is manual enrollment of reward necessary to apply. */
     enrollmentRequired = null
-    /** @type {boolean?} Is the promotion an introductory offer. */
+    /** @type {boolean?} Is the reward an introductory offer. */
     introductoryOffer = null
 
-    /** @type {[PromotionCondition]} List of conditions, only one has to apply in order to activate promotion. Exists to allow for multiple categories, or a category and a specific store. */
+    /** @type {[RewardCondition]} List of conditions, only one has to apply in order to activate reward. Exists to allow for multiple categories, or a category and a specific store. */
     conditions = []
-    /** @type {[PromotionDuration]} List of expirations, which ever is closet applies. Closest expiration should apply. See `PromotionDuration` documentation. */
+    /** @type {[RewardDuration]} List of expirations, which ever is closet applies. Closest expiration should apply. See `RewardDuration` documentation. */
     expiration = []
 
     /**
-     * Set the promotion type to be a percentage based cashback, i.e. get 1% back on all purchases.
+     * Set the reward type to be a percentage based cashback, i.e. get 1% back on all purchases.
      * @param {number} percentage Float percentage value from 0 to 1.
-     * @param {number} spendingMin Minimum spending for promotion to apply in relevant currency.
-     * @param {number} spendingMax Maximum spending for promotion to stop in relevant currency.
+     * @param {number} spendingMin Minimum spending for reward to apply in relevant currency.
+     * @param {number} spendingMax Maximum spending for reward to stop in relevant currency.
      * @param {string} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
      */
     setTypePercentage(percentage, spendingMin = null, spendingMax = null, spendingCycle = null) {
@@ -51,9 +51,9 @@ class CashbackPromotion {
     }
 
     /**
-     * Set the promotion type to be a reimburse based cashback, i.e. get $500 back after spending $2500.
-     * @param {number} spendingMin Minimum spending for promotion to apply in relevant currency.
-     * @param {number} spendingMax Maximum spending for promotion to stop in relevant currency.
+     * Set the reward type to be a reimburse based cashback, i.e. get $500 back after spending $2500.
+     * @param {number} spendingMin Minimum spending for reward to apply in relevant currency.
+     * @param {number} spendingMax Maximum spending for reward to stop in relevant currency.
      * @param {string} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
      */
     setTypeReimburse(spendingMin = null, spendingMax = null, spendingCycle = null) {
@@ -80,7 +80,7 @@ class CashbackPromotion {
     }
 }
 
-class PromotionCondition {
+class RewardCondition {
     type = null
 
     locationCategory = null
@@ -89,7 +89,7 @@ class PromotionCondition {
     locationZipCode = null
 
     /**
-     * Add a location category as a condition for the promotion.
+     * Add a location category as a condition for the reward.
      * @param {string} category Code for the category. TODO: list of codes
      * @param {[string]?} nameExclusions List of stores to be excluded, e.g. all `grocery_store` while excluding `target` and `walmart`.
      */
@@ -103,7 +103,7 @@ class PromotionCondition {
     }
 
     /**
-     * Add a location as a condition for the promotion.
+     * Add a location as a condition for the reward.
      * @param {string} name Name title of the store. Should match the name in the map location database.
      * @param {string?} zipCode Optional zip code to only exclude a single location.
      */

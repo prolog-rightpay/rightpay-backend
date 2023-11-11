@@ -5,7 +5,7 @@ console.log(uri)
 
 async function connect() {
     const client = new MongoClient(uri)
-    client.connect()
+    await client.connect()
 
     const accountsDatabase = client.db("rightpay_accounts")
     const paymentMethodsDatabase = client.db("rightpay_payment_methods")
