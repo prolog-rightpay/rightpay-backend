@@ -2,23 +2,11 @@ const express = require("express")
 const router = express.Router()
 
 const Joi = require("joi")
+const { determineInvalidKey } = require("../../../src/express")
 
 const passwordRegex = new RegExp("^[a-zA-Z0-9]{3,30}$")
 const dbHelper = {
     account: require("../../../src/db/account")
-}
-
-/**
- * Determine the first invalid key of a failed Joi schema validation.
- * @param {object} Joi error object, the `error` attribute of the object returned by `schema.validate()`. 
- * @returns {string|null} Invalid key string or null.
- */
-function determineInvalidKey(error) {
-    if (error.details.length < 1) {
-        return null
-    }
-    const context = error.details[0].context.label
-    return context
 }
 
 router.post("/", (req, res) => {

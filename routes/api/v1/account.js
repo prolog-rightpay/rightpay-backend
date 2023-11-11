@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 
 const Joi = require("joi")
-const { Session } = require("../../../src/models/session")
+const { Session } = require("../../../src/models/Session")
 const dbHelper = {
     account: require("../../../src/db/account")
 }

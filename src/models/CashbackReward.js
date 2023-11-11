@@ -1,5 +1,7 @@
+const { v4: uuidv4 } = require("uuid")
+
 /**
- * Cashback rewards tied to generic credit cards.
+ * Cashback rewards tied to generic payment methods.
  */
 class CashbackReward {
     /** @type {string} Internal ID. */
@@ -9,10 +11,12 @@ class CashbackReward {
     /** @type {Date?} Internal date that the reward was last modified in the database. */
     dateModified = null
 
-    /** @type {string?} ID of admin that created/approved the reward. */
-    adminAuthorId = null
-    /** @type {string?} ID of user that originally submitted the reward, if any. */
-    userAuthorId = null
+    /** @type {string} Is reward approved and visible to users. */
+    isApproved = false
+    /** @type {string?} Account ID of the author of the reward. */
+    authorAccountId = null
+    /** @type {string?} Account ID of the approver. */
+    approverAccountId = null
 
     /** @type {string} **Set with `setTypePercentage()` or `setTypeReimburse()`.** Can be `percentage` / `reimburse` */
     type = null
@@ -27,9 +31,9 @@ class CashbackReward {
     reimburseAmount = null
 
     /** @type {boolean?} Is manual enrollment of reward necessary to apply. */
-    enrollmentRequired = null
+    isEnrollmentRequired = null
     /** @type {boolean?} Is the reward an introductory offer. */
-    introductoryOffer = null
+    isIntroductoryOffer = null
 
     /** @type {[RewardCondition]} List of conditions, only one has to apply in order to activate reward. Exists to allow for multiple categories, or a category and a specific store. */
     conditions = []
@@ -37,14 +41,45 @@ class CashbackReward {
     expiration = []
 
     /**
+     * @param {string?} id If not given will create new UUIDv4.
+     * @param {boolean} isEnrollmentRequired 
+     * @param {boolean} isIntroductoryOffer 
+     * @param {date} dateCreated If not given will use date of initialization.
+     * @param {date} dateModified 
+     */
+    constructor(id,
+        isEnrollmentRequired,
+        isIntroductoryOffer,
+        dateCreated = null,
+        dateModified = null) {
+            this.id = id || uuidv4()
+            this.isEnrollmentRequired = isEnrollmentRequired
+            this.isIntroductoryOffer = isIntroductoryOffer
+            this.dateCreated = dateCreated || new Date()
+            this.dateModified = dateModified
+        }
+
+    /**
+     * @param {boolean} isApproved Is the reward approved?
+     * @param {string} authorAccountId 
+     * @param {string} approverAccountId 
+     */
+    setApprovalStatus(isApproved, authorAccountId, approverAccountId) {
+        this.isApproved = isApproved
+        this.authorAccountId = authorAccountId
+        this.approverAccountId = approverAccountId
+    }
+
+    /**
      * Set the reward type to be a percentage based cashback, i.e. get 1% back on all purchases.
      * @param {number} percentage Float percentage value from 0 to 1.
-     * @param {number} spendingMin Minimum spending for reward to apply in relevant currency.
-     * @param {number} spendingMax Maximum spending for reward to stop in relevant currency.
-     * @param {string} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
+     * @param {number?} spendingMin Minimum spending for reward to apply in relevant currency.
+     * @param {number?} spendingMax Maximum spending for reward to stop in relevant currency.
+     * @param {string?} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
      */
     setTypePercentage(percentage, spendingMin = null, spendingMax = null, spendingCycle = null) {
         this.type = "percentage"
+        this.percentage = percentage
         this.spendingMin = spendingMin
         this.spendingMax = spendingMax
         this.spendingCycle = spendingCycle
@@ -52,12 +87,14 @@ class CashbackReward {
 
     /**
      * Set the reward type to be a reimburse based cashback, i.e. get $500 back after spending $2500.
-     * @param {number} spendingMin Minimum spending for reward to apply in relevant currency.
-     * @param {number} spendingMax Maximum spending for reward to stop in relevant currency.
-     * @param {string} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
+     * @param {number} reimburseAmount Cash total of reimburse amount.
+     * @param {number?} spendingMin Minimum spending for reward to apply in relevant currency.
+     * @param {number?} spendingMax Maximum spending for reward to stop in relevant currency.
+     * @param {string?} spendingCycle When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`.
      */
-    setTypeReimburse(spendingMin = null, spendingMax = null, spendingCycle = null) {
+    setTypeReimburse(reimburseAmount, spendingMin = null, spendingMax = null, spendingCycle = null) {
         this.type = "reimburse"
+        this.reimburseAmount = reimburseAmount
         this.spendingMin = spendingMin
         this.spendingMax = spendingMax
         this.spendingCycle = spendingCycle
@@ -78,41 +115,8 @@ class CashbackReward {
         }
         this.expiration.push(expiration)
     }
-}
 
-class RewardCondition {
-    type = null
-
-    locationCategory = null
-
-    locationName = null
-    locationZipCode = null
-
-    /**
-     * Add a location category as a condition for the reward.
-     * @param {string} category Code for the category. TODO: list of codes
-     * @param {[string]?} nameExclusions List of stores to be excluded, e.g. all `grocery_store` while excluding `target` and `walmart`.
-     */
-    addLocationCategory(category, nameExclusions = []) {
-        const condition = {
-            type: "location_category",
-            location_category: category,
-            location_name_exclusions: nameExclusions
-        }
-        this.conditions.push(conditions)
-    }
-
-    /**
-     * Add a location as a condition for the reward.
-     * @param {string} name Name title of the store. Should match the name in the map location database.
-     * @param {string?} zipCode Optional zip code to only exclude a single location.
-     */
-    addLocation(name, zipCode = null) {
-        const condition = {
-            type: "location_name",
-            location_name: name,
-            location_zip: zipCode
-        }
+    addCondition(condition) {
         this.conditions.push(condition)
     }
 }
