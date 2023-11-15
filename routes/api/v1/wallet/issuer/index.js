@@ -1,15 +1,16 @@
 const express = require("express")
-const { issuerFromBIN, issuerFromId, getAllIssuers } = require("../../../../../src/db/wallet/global/issuer")
+const { issuerFromBIN, issuerFromId, getAllIssuers, getAllIssuersPaymentMethods } = require("../../../../../src/db/wallet/global/issuer")
+const { paymentMethodToJson } = require("../paymentmethod")
 const router = express.Router()
 
 function issuerToJSON(issuer) {
     return {
         id: issuer.id,
         name: issuer.name,
-        thumbnail_image_url: issuer.thumbnailImageUrl
+        thumbnail_image_url: issuer.thumbnailImageUrl,
+        payment_methods: issuer.paymentMethods.map(item => paymentMethodToJson(item, false))
     }
 }
-
 
 router.get("/", async (req, res) => {
     const globalWalletDb = req.app.get("db").globalWallet
@@ -19,6 +20,18 @@ router.get("/", async (req, res) => {
         success: true,
         data: {
             issuers: issuersJson
+        }
+    })
+})
+
+router.get("/paymentmethods", async (req, res) => {
+    const globalWalletDb = req.app.get("db").globalWallet
+    const issuers = await getAllIssuersPaymentMethods(globalWalletDb)
+    // console.log(issuers)
+    res.json({
+        success: true,
+        data: {
+            issuers: issuers.map(issuerToJSON)
         }
     })
 })

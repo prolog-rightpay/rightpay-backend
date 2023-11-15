@@ -12,6 +12,8 @@ class GlobalIssuer {
     thumbnailImageUrl = null
     /** @type {date} Date added. */
     dateAdded = null
+    /** @type {[GlobalPaymentMethod]} */
+    paymentMethods = []
 
     /**
      * @param {string?} id If not given will create new UUIDv4.

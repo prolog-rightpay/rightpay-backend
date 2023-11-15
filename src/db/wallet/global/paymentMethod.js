@@ -1,9 +1,36 @@
+const { GlobalPaymentMethod } = require("../../../models/GlobalPaymentMethod")
 const { issuerFromId } = require("./issuer")
 
+function paymentMethodFromBson(bson) {
+    const { id, payment_type: paymentType, network_type: networkType,
+    date_created: dateCreated, date_modified: dateModified, name, active,
+    image_url: imageUrl, issuer_id: issuerId } = bson
+
+    const paymentMethod = new GlobalPaymentMethod(id, paymentType, networkType, name, issuerId, imageUrl, dateCreated, dateModified, active)
+    return paymentMethod
+}
+exports.paymentMethodFromBson = paymentMethodFromBson
+
+function paymentMethodToBson(paymentMethod) {
+    const { id, paymentType, networkType, dateCreated, dateModified, name, active, imageUrl, issuerId } = paymentMethod
+
+    const bson = {
+        id: id,
+        payment_type: paymentType,
+        network_type: networkType,
+        date_created: dateCreated,
+        date_modified: dateModified,
+        name: name,
+        active: active,
+        image_url: imageUrl,
+        issuer_id: issuerId
+    }
+
+    return bson
+}
+
 async function insertGlobalPaymentMethod(db, globalPaymentMethod) {
-    const { id, paymentType, networkType,
-        dateCreated, dateModified,
-        name, active, imageUrl, issuerId } = globalPaymentMethod
+    const { id, paymentType, networkType, name, issuerId } = globalPaymentMethod
 
     switch (paymentType) {
         case "credit":
@@ -23,18 +50,7 @@ async function insertGlobalPaymentMethod(db, globalPaymentMethod) {
 
     // Check that issuer exists
     const _ = await issuerFromId(db, issuerId)
-
-    const bson = {
-        id: id,
-        payment_type: paymentType,
-        network_type: networkType,
-        date_created: dateCreated,
-        date_modified: dateModified,
-        name: name,
-        active: active,
-        image_url: imageUrl,
-        issuer_id: issuerId
-    }
+    const bson = paymentMethodToBson(globalPaymentMethod)
 
     const paymentMethodsColl = db.collection("payment_methods")
 
@@ -51,3 +67,12 @@ async function insertGlobalPaymentMethod(db, globalPaymentMethod) {
     await paymentMethodsColl.insertOne(bson)
 }
 exports.insertGlobalPaymentMethod = insertGlobalPaymentMethod
+
+async function getPaymentMethods(db) {
+    const paymentMethodsColl = db.collection("payment_methods")
+    const resultsCur = paymentMethodsColl.find()
+    const results = await resultsCur.toArray()
+    const paymentMethods = results.map(paymentMethodFromBson)
+    return paymentMethods
+} 
+exports.getPaymentMethods = getPaymentMethods

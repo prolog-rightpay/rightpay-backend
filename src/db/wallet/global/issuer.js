@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt")
 const { v4: uuidv4 } = require("uuid")
 
 const { GlobalIssuer } = require("../../../models/GlobalIssuer")
+const { GlobalPaymentMethod } = require("../../../models/GlobalPaymentMethod")
+const { paymentMethodFromBson } = require("./paymentmethod")
 
 function issuerFromBSON(issuer) {
     const { id, name, thumbnail_image_url: thumbnailImageUrl, date_added: dateAdded } = issuer
@@ -25,6 +27,29 @@ async function getAllIssuers(db) {
     return issuers
 }
 exports.getAllIssuers = getAllIssuers
+
+async function getAllIssuersPaymentMethods(db) {
+    const issuersColl = db.collection("issuers")
+    const resultsCur = await issuersColl.aggregate([
+        {
+            $lookup: {
+                from: "payment_methods",
+                localField: "id",
+                foreignField: "issuer_id",
+                as: "payment_methods"
+            }
+        }
+    ])
+    const results = await resultsCur.toArray()
+    const issuers = results.map(item => {
+        const paymentMethods = item.payment_methods.map(paymentMethodFromBson)
+        const issuer = issuerFromBSON(item)
+        issuer.paymentMethods = paymentMethods
+        return issuer
+    })
+    return issuers
+}
+exports.getAllIssuersPaymentMethods = getAllIssuersPaymentMethods
 
 async function issuerFromBIN(db, bin) {
     const issuersColl = db.collection("issuers")
