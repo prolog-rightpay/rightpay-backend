@@ -10,7 +10,7 @@ class RewardCondition {
     /** @type {string} Location category, applicable when of type `location_category`.  */
     locationCategory = null
     /** @type {[string]} Specific business names to exclude from category, applicable when of type `location`. */
-    nameExclusions = null
+    locationNameExclusions = null
 
     /** @type {string} Name of location, application when of type `location`. */
     locationName = null
@@ -21,8 +21,8 @@ class RewardCondition {
      * Once initialized use `setLocationCategory` or `setLocation`.
      * @param {string} id If not given will create new UUIDv4.
      */
-    constructor(id) {
-        id = uuidv4()
+    constructor(id = null) {
+        id = id || uuidv4()
     }
 
     /**
@@ -33,7 +33,7 @@ class RewardCondition {
     setLocationCategory(category, nameExclusions) {
         this.type = "location_category"
         this.locationCategory = category
-        this.nameExclusions = nameExclusions
+        this.locationNameExclusions = nameExclusions
     }
 
     /**
@@ -43,8 +43,8 @@ class RewardCondition {
      */
     setLocation(name, zipCode = null) {
         this.type = "location"
-        this.name = name
-        this.zipCode = zipCode
+        this.locationName = name
+        this.locationZipCode = zipCode
     }
 }
 exports.RewardCondition = RewardCondition

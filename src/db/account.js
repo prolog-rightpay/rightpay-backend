@@ -51,6 +51,16 @@ function sessionFromBSON(bson) {
     return session
 }
 
+async function getAccountFromId(db, id) {
+    const accountsColl = db.collection("accounts")
+    const accountDoc = await accountsColl.findOne({ id: id })
+    if (!accountDoc) {
+        throw new Error("Account with ID does not exist")
+    }
+    const account = accountFromBSON(accountDoc)
+    return account
+}
+
 /**
  * Validate a password using the user's ID.
  * @param {*} db MongoDB accounts database object.

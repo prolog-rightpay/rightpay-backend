@@ -7,8 +7,6 @@ class GlobalPaymentMethod {
     /** @type {string} `credit` */
     paymentType = "credit"
 
-    /** @type {[number]} Array of 6-digit bin numbers associated with this card. */
-    bin = []
     /** @type {string} ID of the network type, `visa`, `mastercard`, `amex`, `discover` */
     networkType = null
 
@@ -38,8 +36,9 @@ class GlobalPaymentMethod {
      * @param {string?} imageUrl 
      * @param {date?} dateCreated If not given then will use date of initialization.
      * @param {date?} dateModified 
+     * @param {boolean?} [active=true]
      */
-    constructor(id, paymentType, networkType, name, issuerId, imageUrl = null, dateCreated = null, dateModified = null) {
+    constructor(id, paymentType, networkType, name, issuerId, imageUrl = null, dateCreated = null, dateModified = null, active = true) {
         this.id = id || uuidv4()
         this.paymentType = paymentType
         this.networkType = networkType
@@ -50,6 +49,8 @@ class GlobalPaymentMethod {
         this.name = name
         this.imageUrl = imageUrl
         this.issuerId = issuerId
+
+        this.active = active
     }
 }
 exports.GlobalPaymentMethod = GlobalPaymentMethod

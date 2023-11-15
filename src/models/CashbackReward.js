@@ -24,6 +24,8 @@ class CashbackReward {
     spendingMin = null
     /** @type {number?} Maximum spending amount of reward. */
     spendingMax = null
+    /** @type {string} When the spending min and max caps reset, `annually` / `quarterly` / `monthly` / `daily` / `cycle`. */
+    spendingCycle = null
 
     /** @type {float?} Cashback percentage. */
     percentage = null
@@ -37,8 +39,10 @@ class CashbackReward {
 
     /** @type {[RewardCondition]} List of conditions, only one has to apply in order to activate reward. Exists to allow for multiple categories, or a category and a specific store. */
     conditions = []
-    /** @type {[RewardDuration]} List of expirations, which ever is closet applies. Closest expiration should apply. See `RewardDuration` documentation. */
-    expiration = []
+    /** @type {[RewardDuration]} List of durations, which ever is closet applies. Closest expiration should apply. See `RewardDuration` documentation. */
+    durations = []
+
+    // is_approved: isApproved, author_account_id: authorAccountId, approver_account_id: approverAccountId
 
     /**
      * @param {string?} id If not given will create new UUIDv4.
@@ -46,17 +50,26 @@ class CashbackReward {
      * @param {boolean} isIntroductoryOffer 
      * @param {date} dateCreated If not given will use date of initialization.
      * @param {date} dateModified 
+     * @param {boolean} isApproved
+     * @param {string} authorAccountId
+     * @param {string} approverAccountId
      */
     constructor(id,
         isEnrollmentRequired,
         isIntroductoryOffer,
         dateCreated = null,
-        dateModified = null) {
+        dateModified = null,
+        isApproved = null,
+        authorAccountId = null,
+        approverAccountId = null) {
             this.id = id || uuidv4()
             this.isEnrollmentRequired = isEnrollmentRequired
             this.isIntroductoryOffer = isIntroductoryOffer
             this.dateCreated = dateCreated || new Date()
             this.dateModified = dateModified
+            this.isApproved = isApproved
+            this.authorAccountId = authorAccountId
+            this.approverAccountId = approverAccountId
         }
 
     /**
@@ -100,26 +113,15 @@ class CashbackReward {
         this.spendingCycle = spendingCycle
     }
 
-    addExpirationDate(date) {
-        const expiration = {
-            type: "date",
-            date: date
-        }
-        this.expiration.push(expiration)
-    }
-
-    addExpirationIntroductory(days) {
-        const expiration = {
-            type: "introductory",
-            days: days
-        }
-        this.expiration.push(expiration)
+    addDuration(duration) {
+        this.durations.push(duration)
     }
 
     addCondition(condition) {
         this.conditions.push(condition)
     }
 }
+exports.CashbackReward = CashbackReward
 
 // cashback = {
 //     id: "uuidv4",
