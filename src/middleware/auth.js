@@ -1,6 +1,10 @@
 const { validateSessionToken } = require("../db/account")
 
 async function sessionAuth(req, res, next) {
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200)
+    }
+    
     const accountsDb = req.app.get("db").accounts
 
     const authHeader = req.headers["authorization"]

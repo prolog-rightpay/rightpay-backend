@@ -68,13 +68,19 @@ async function issuerFromBIN(db, bin) {
 }
 exports.issuerFromBIN = issuerFromBIN
 
-async function issuerFromId(db, id) {
+async function issuerFromId(db, id, includeBINs = false) {
     const issuersColl = db.collection("issuers")
     const issuerDoc = await issuersColl.findOne({ id: id })
     if (!issuerDoc) {
         throw new Error("Issuer does not exist")
     }
     const issuer = issuerFromBSON(issuerDoc)
+
+    if (includeBINs) {
+        const bins = await binsFromIssuer(db, issuer)
+        issuer.bins = bins
+    }
+
     return issuer
 }
 exports.issuerFromId = issuerFromId
@@ -120,3 +126,35 @@ async function insertGlobalIssuer(db, issuer) {
     
 }
 exports.insertGlobalIssuer = insertGlobalIssuer
+
+async function updateGlobalIssuer(db, issuer) {
+    const issuersColl = db.collection("issuers")
+    const issuerBinsColl = db.collection("issuer_bins")
+
+    const { id, name, thumbnailImageUrl, bins } = issuer
+    const result = await issuersColl.updateOne({ id }, {
+        $set: {
+            name, thumbnail_image_url: thumbnailImageUrl, date_modified: new Date()
+        }
+    })
+    if (result.matchedCount < 1) {
+        throw new Error("Issuer not found.")
+    }
+
+    // BINs
+    const binsCur = await issuerBinsColl.find({ issuer_id: issuer.id })
+    const existingBins = await binsCur.toArray()
+
+    const binsToDelete = existingBins.filter(bin => { return !issuer.bins.includes(bin.bin) }).map(doc => { return { _id: doc._id } })
+    console.log(binsToDelete)
+    if (binsToDelete.length > 0) {
+        await issuerBinsColl.deleteMany({ $or: binsToDelete })
+    }
+
+    const operations = issuer.bins.map(async bin => {
+        return await issuerBinsColl.updateOne({ bin: bin }, { $set: { issuer_id: issuer.id } }, { upsert: true })
+    })
+    await Promise.all(operations)
+}
+exports.updateGlobalIssuer = updateGlobalIssuer
+

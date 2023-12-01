@@ -76,3 +76,28 @@ async function getPaymentMethods(db) {
     return paymentMethods
 } 
 exports.getPaymentMethods = getPaymentMethods
+
+async function getPaymentMethodsForIssuer(db, issuer) {
+    const paymentMethodsColl = db.collection("payment_methods")
+    const resultsCur = paymentMethodsColl.find({ issuer_id: issuer.id })
+    const results = await resultsCur.toArray()
+    const paymentMethods = results.map(paymentMethodFromBson)
+    return paymentMethods
+}
+exports.getPaymentMethodsForIssuer = getPaymentMethodsForIssuer
+
+function paymentMethodToJson(paymentMethod, includeIssuerId = true) {
+    const { id, issuerId, name, imageUrl, paymentType } = paymentMethod
+    let json = {
+        id: id,
+        issuer_id: issuerId,
+        name: name,
+        image_url: imageUrl,
+        payment_type: paymentType
+    }
+    if (!includeIssuerId) {
+        delete json.issuer_id
+    }
+    return json
+}
+exports.paymentMethodToJson = paymentMethodToJson

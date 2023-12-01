@@ -14,6 +14,9 @@ router.get("/", (req, res) => {
         last_name: account.lastName,
         date_created: account.dateCreated?.toISOString()
     }
+    if (account.isAdmin) {
+        accountData.is_admin = account.isAdmin
+    }
     res.json({
         success: true,
         data: {
