@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require("uuid")
+const { GlobalPaymentMethod } = require("./GlobalPaymentMethod")
 
 /** Issuer of payment methods, e.g. Chase or American Express. Not to be confused with network such as Visa or Mastercard. */
 class GlobalIssuer {
@@ -26,6 +27,26 @@ class GlobalIssuer {
         this.name = name
         this.dateAdded = dateAdded || new Date()
         this.thumbnailImageUrl = thumbnailImageUrl
+    }
+
+    toJson(extended = false) {
+        const { id, name, thumbnailImageUrl, paymentMethods, bins } = this
+        const data = {
+            id: id,
+            name: name,
+            thumbnail_image_url: thumbnailImageUrl,
+            payment_methods: paymentMethods.map(pm => pm.toJson(extended)),
+            bins: bins
+        }
+        if (!bins) {
+            delete data.bins
+        }
+        return data
+    }
+
+    static fromDoc(doc) {
+        const { id, name, thumbnail_image_url: thumbnailImageUrl, date_added: dateAdded } = doc
+        return new GlobalIssuer(id, name, dateAdded, thumbnailImageUrl)
     }
 }
 exports.GlobalIssuer = GlobalIssuer

@@ -1,7 +1,7 @@
 const express = require("express")
 const Joi = require("joi")
 const { insertCashbackReward } = require("../../../../../src/db/wallet/global/cashbackReward")
-const { insertRewardCondition, insertManyRewardConditions } = require("../../../../../src/db/wallet/global/rewardCondition")
+const { insertManyRewardConditions } = require("../../../../../src/db/wallet/global/rewardCondition")
 const { determineInvalidKey } = require("../../../../../src/express")
 const { isAdmin } = require("../../../../../src/middleware/admin")
 const { CashbackReward } = require("../../../../../src/models/CashbackReward")

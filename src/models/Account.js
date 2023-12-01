@@ -30,5 +30,13 @@ class Account {
         this.dateCreated = dateCreated || new Date()
         this.isAdmin = isAdmin
     }
+
+    static fromDoc(doc) {
+        const { id, email,
+            first_name: firstName, last_name: lastName,
+            date_created: dateCreated, is_admin: isAdmin } = doc
+        const account = new Account(id, email, firstName, lastName, dateCreated, isAdmin)
+        return account
+    }
 }
 exports.Account = Account

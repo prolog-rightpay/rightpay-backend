@@ -22,5 +22,21 @@ class RewardDuration {
 
         this.expirationDate = null
     }
+
+    static fromDoc(doc) {
+        const { type, expiration_date: expirationDate, period_days: periodDays } = doc
+        const duration = new RewardDuration()
+        switch (type) {
+            case "date":
+                duration.setExpirationDate(expirationDate)
+                break
+            case "period":
+                duration.setPeriodDays(periodDays)
+                break
+            default:
+                throw new Error("Cashback reward duration has an invalid type")
+        }
+        return duration
+    }
 }
 exports.RewardDuration = RewardDuration

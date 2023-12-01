@@ -3,12 +3,6 @@ const { v4: uuidv4 } = require("uuid")
 
 const { GlobalIssuer } = require("../../../models/GlobalIssuer")
 const { GlobalPaymentMethod } = require("../../../models/GlobalPaymentMethod")
-const { paymentMethodFromBson } = require("./paymentmethod")
-
-function issuerFromBSON(issuer) {
-    const { id, name, thumbnail_image_url: thumbnailImageUrl, date_added: dateAdded } = issuer
-    return new GlobalIssuer(id, name, dateAdded, thumbnailImageUrl)
-}
 
 async function binsFromIssuer(db, issuer) {
     const issuerBinsColl = db.collection("issuer_bins")
@@ -21,9 +15,9 @@ exports.binsFromIssuer = binsFromIssuer
 
 async function getAllIssuers(db) {
     const issuersColl = db.collection("issuers")
-    const issuersBSONCur = await issuersColl.find()
-    const issuersBSON = await issuersBSONCur.toArray()
-    const issuers = issuersBSON.map(issuerFromBSON)
+    const issuersDocCur = await issuersColl.find()
+    const issuersDoc = await issuersDocCur.toArray()
+    const issuers = issuersDoc.map(GlobalIssuer.fromDoc)
     return issuers
 }
 exports.getAllIssuers = getAllIssuers
@@ -42,8 +36,8 @@ async function getAllIssuersPaymentMethods(db) {
     ])
     const results = await resultsCur.toArray()
     const issuers = results.map(item => {
-        const paymentMethods = item.payment_methods.map(paymentMethodFromBson)
-        const issuer = issuerFromBSON(item)
+        const paymentMethods = item.payment_methods.map(GlobalPaymentMethod.fromDoc)
+        const issuer = GlobalIssuer.fromDoc(item)
         issuer.paymentMethods = paymentMethods
         return issuer
     })
@@ -63,7 +57,7 @@ async function issuerFromBIN(db, bin) {
     if (!issuerDoc) {
         throw new Error("Issuer does not exist")
     }
-    const issuer = issuerFromBSON(issuerDoc)
+    const issuer = GlobalIssuer.fromDoc(issuerDoc)
     return issuer
 }
 exports.issuerFromBIN = issuerFromBIN
@@ -74,7 +68,7 @@ async function issuerFromId(db, id, includeBINs = false) {
     if (!issuerDoc) {
         throw new Error("Issuer does not exist")
     }
-    const issuer = issuerFromBSON(issuerDoc)
+    const issuer = GlobalIssuer.fromDoc(issuerDoc)
 
     if (includeBINs) {
         const bins = await binsFromIssuer(db, issuer)
@@ -96,13 +90,13 @@ async function insertGlobalIssuer(db, issuer) {
         throw new Error("Issuer with name already exists")
     }
 
-    const issuerBSON =  {
+    const issuerDoc =  {
         id: id,
         name: name,
         thumbnail_image_url: thumbnailImageUrl,
         date_added: dateAdded
     }
-    await issuersColl.insertOne(issuerBSON)
+    await issuersColl.insertOne(issuerDoc)
 
     // BINs
     const existingBinsCur = await issuerBinsColl.find({ bin: { $in: issuer.bins } })
@@ -115,13 +109,13 @@ async function insertGlobalIssuer(db, issuer) {
     })
 
     if (filteredBins.length > 0) {
-        const binsBSON = filteredBins.map(bin => {
+        const binsDoc = filteredBins.map(bin => {
             return {
                 bin: bin,
                 issuer_id: issuer.id
             }
         })
-        await issuerBinsColl.insertMany(binsBSON)
+        await issuerBinsColl.insertMany(binsDoc)
     }
     
 }
@@ -146,7 +140,6 @@ async function updateGlobalIssuer(db, issuer) {
     const existingBins = await binsCur.toArray()
 
     const binsToDelete = existingBins.filter(bin => { return !issuer.bins.includes(bin.bin) }).map(doc => { return { _id: doc._id } })
-    console.log(binsToDelete)
     if (binsToDelete.length > 0) {
         await issuerBinsColl.deleteMany({ $or: binsToDelete })
     }

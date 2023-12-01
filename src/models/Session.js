@@ -75,5 +75,16 @@ class Session {
     isValid() {
         return this.isActive && this.getDateExpires() > new Date()
     }
+
+    static fromDoc(doc) {
+        const { token, account_id: accountId,
+            date_created: dateCreated, date_modified: dateModified, age,
+            ip_address: ipAddress, creation_source: creationSource,
+            is_active: active } = doc
+
+        const session = new Session(accountId, ipAddress, creationSource, dateCreated, dateModified, age, active)
+        session.token = token
+        return session
+    }
 }
 exports.Session = Session

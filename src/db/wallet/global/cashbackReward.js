@@ -1,4 +1,6 @@
 const { CashbackReward } = require("../../../models/CashbackReward")
+const { RewardDuration } = require("../../../models/RewardDuration")
+const { rewardConditionsForCashbackReward } = require("./rewardCondition")
 
 async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
     const { id, dateCreated, dateModified,
@@ -10,7 +12,7 @@ async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
 
     const cashbackRewardsColl = db.collection("cashback_rewards")
 
-    const durationsBSON = durations.reduce((items, duration) => {
+    const durationsDoc = durations.reduce((items, duration) => {
         switch (duration.type) {
             case "date":
                 items.push({
@@ -30,7 +32,7 @@ async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
         return items
     }, [])
 
-    const cashbackRewardsBSON = {
+    const cashbackRewardsDoc = {
         id: id,
         payment_method_id: paymentMethodId,
         date_created: dateCreated,
@@ -46,47 +48,36 @@ async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
         reimburse_amount: reimburseAmount,
         is_enrollment_required: isEnrollmentRequired,
         is_introductory_offer: isIntroductoryOffer,
-        durations: durationsBSON
+        durations: durationsDoc
     }
-    await cashbackRewardsColl.insertOne(cashbackRewardsBSON)    
+    await cashbackRewardsColl.insertOne(cashbackRewardsDoc)    
 }
 exports.insertCashbackReward = insertCashbackReward
 
-function cashbackDurationFromBSON(bson) {
-    const duration = new RewardDuration()
-    switch (type) {
-        case "date":
-            duration.setExpirationDate(type.expiration_date)
-            break
-        case "period":
-            duration.setPeriodDays(type.period_days)
-            break
-        default:
-            throw new Error("Cashback reward duration has an invalid type")
-    }
-    return duration
-}
+async function getCashbackReward(db, id) {
+    const cashbackRewardsColl = db.collection("cashback_rewards")
+    const result = await cashbackRewardsColl.findOne({ id: id })
+    let cashbackReward = CashbackReward.fromDoc(result)
 
-function cashbackRewardFromBSON(bson) {
-    const { id, date_created: dateCreated, date_modified: dateModified,
-    is_approved: isApproved, author_account_id: authorAccountId, approver_account_id: approverAccountId,
-    type, spending_min: spendingMin, spending_max: spendingMax, percentage, reimburse_amount: reimburseAmount,
-    is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = bson
-
-    const cashbackReward = new CashbackReward(id, isEnrollmentRequired, isIntroductoryOffer, dateCreated, dateModified)
-    switch (type) {
-        case "reimburse":
-            cashbackReward.setTypeReimburse(reimburseAmount, spendingMin, spendingMax, spendingCycle)
-            break
-        case "percentage":
-            cashbackReward.setTypePercentage(percentage, spendingMin, spendingMax, spendingCycle)
-            break
-        default:
-            throw new Error("Invalid cashback reward type")
-    }
-
-    const durations = bson.durations.map(cashbackDurationFromBSON)
-    cashbackReward.durations = durations
+    const conditions = await rewardConditionsForCashbackReward(db, cashbackReward)
+    cashbackReward.conditions = conditions
 
     return cashbackReward
 }
+exports.getCashbackReward = getCashbackReward
+
+async function getCashbackRewardsFromPaymentMethod(db, paymentMethod) {
+    const cashbackRewardsColl = db.collection("cashback_rewards")
+    const resultsCur = await cashbackRewardsColl.find({ payment_method_id: paymentMethod.id })
+    const results = await resultsCur.toArray()
+
+    let cashbackRewards = results.map(CashbackReward.fromDoc)
+    cashbackRewards = await Promise.all(cashbackRewards.map(async cashbackReward => {
+        const conditions = await rewardConditionsForCashbackReward(db, cashbackReward)
+        cashbackReward.conditions = conditions
+        return cashbackReward
+    }))
+
+    return cashbackRewards
+}
+exports.getCashbackRewardsFromPaymentMethod = getCashbackRewardsFromPaymentMethod

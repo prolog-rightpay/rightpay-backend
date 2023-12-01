@@ -46,5 +46,19 @@ class RewardCondition {
         this.locationName = name
         this.locationZipCode = zipCode
     }
+
+    static fromDoc(doc) {
+        const { id, type, location_category: locationCategory,
+        location_name_exclusions: locationNameExclusions, location_name: locationName, location_zip_code: locationZipCode } = doc
+    
+        const condition = new RewardCondition(id)
+        if (type == "location_category") {
+            condition.setLocationCategory(locationCategory, locationNameExclusions)
+        } else if (type == "location") {
+            condition.setLocation(locationName, locationZipCode)
+        }
+    
+        return condition
+    }
 }
 exports.RewardCondition = RewardCondition

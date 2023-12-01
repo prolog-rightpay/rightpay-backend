@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require("uuid")
+const { RewardDuration } = require("./RewardDuration")
 
 /**
  * Cashback rewards tied to generic payment methods.
@@ -120,42 +121,81 @@ class CashbackReward {
     addCondition(condition) {
         this.conditions.push(condition)
     }
+
+    toJson(extended = false) {
+        const { id, paymentMethodId, dateCreated, dateModified,
+            isApproved, authorAccountId, approverAccountId, type,
+            spendingMin, spendingMax, spendingCycle, percentage,
+            reimburseAmount, isEnrollmentRequired, isIntroductoryOffer, conditions, durations } = this
+    
+        const jsonConditions = conditions.map(condition => {
+            const { type, locationCategory, locationNameExclusions, locationName, locationZipCode } = condition
+            return {
+                type: type,
+                location_category: locationCategory,
+                location_name_exclusions: locationNameExclusions,
+                location_name: locationName,
+                location_zip_code: locationZipCode
+            }
+        })
+        const jsonDurations = durations.map(duration => {
+            const { type, expirationDate, periodDays } = duration
+            return {
+                type: type,
+                expiration_date: expirationDate,
+                period_days: periodDays
+            }
+        })
+        const data = {
+            id: id,
+            payment_method_id: paymentMethodId,
+            type: type,
+            spending_min: spendingMin,
+            spending_max: spendingMax,
+            spending_cycle: spendingCycle,
+            percentage: percentage,
+            reimburse_amount: reimburseAmount,
+            is_enrollment_required: isEnrollmentRequired,
+            is_introductory_offer: isIntroductoryOffer,
+            conditions: jsonConditions,
+            durations: jsonDurations
+        }
+        if (extended) {
+            data.date_created = dateCreated
+            data.date_modified = dateModified
+            data.is_approved = isApproved
+            data.author_account_id = authorAccountId
+            data.approver_account_id = approverAccountId
+        }
+        return data
+    }
+
+    static fromDoc(doc) {
+        const { id, date_created: dateCreated, date_modified: dateModified,
+        is_approved: isApproved, author_account_id: authorAccountId, approver_account_id: approverAccountId,
+        type, spending_min: spendingMin, spending_max: spendingMax, spending_cycle: spendingCycle, 
+        percentage, reimburse_amount: reimburseAmount,
+        is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = doc
+    
+        const cashbackReward = new CashbackReward(id, isEnrollmentRequired, isIntroductoryOffer, dateCreated, dateModified)
+        switch (type) {
+            case "reimburse":
+                cashbackReward.setTypeReimburse(reimburseAmount, spendingMin, spendingMax, spendingCycle)
+                break
+            case "percentage":
+                cashbackReward.setTypePercentage(percentage, spendingMin, spendingMax, spendingCycle)
+                break
+            default:
+                throw new Error("Invalid cashback reward type")
+        }
+        cashbackReward.isApproved = isApproved
+        cashbackReward.authorAccountId = authorAccountId
+        cashbackReward.approverAccountId = approverAccountId
+    
+        const durations = doc.durations.map(RewardDuration.fromDoc)
+        cashbackReward.durations = durations
+    
+        return cashbackReward
+    }
 }
 exports.CashbackReward = CashbackReward
-
-// cashback = {
-//     id: "uuidv4",
-//     credit_card_id: "american-express-plat-card",
-//     date_created: "ISO DATE",
-//     date_modified: "ISO DATE",
-
-//     type: "percentage", // or reimburse
-//     percentage: 0.05,
-//     spending_min: null,
-//     spending_max: 5000,
-//     spending_cycle: "annually",
-//     enrollment_required: false,
-//     introductory_offer: false,
-
-//     // only one condition has to be met
-//     conditions: [{
-//         type: "location_category",
-//         location_category: "grocery stores",
-//         location_name_exclusions: ["Target"]
-//     }, {
-//         type: "location_name",
-//         location_name: "Target"
-//     }],
-
-//     // which ever offer comes first
-//     expiration: [
-//         {
-//             type: "date",
-//             date: "ISO DATE"
-//         },
-//         {
-//             type: "introductory",
-//             days: "DAYS"
-//         }
-//     ]
-// }

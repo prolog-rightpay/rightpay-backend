@@ -52,5 +52,35 @@ class GlobalPaymentMethod {
 
         this.active = active
     }
+
+    static fromDoc(doc) {
+        const { id, payment_type: paymentType, network_type: networkType,
+        date_created: dateCreated, date_modified: dateModified, name, active,
+        image_url: imageUrl, issuer_id: issuerId } = doc
+    
+        const paymentMethod = new GlobalPaymentMethod(id, paymentType, networkType, name, issuerId, imageUrl, dateCreated, dateModified, active)
+        return paymentMethod
+    }
+
+    toJson(extended = false) {
+        const { id, issuerId, name, imageUrl, paymentType, cashbackRewards } = this
+        let json = {
+            id: id,
+            issuer_id: issuerId,
+            name: name,
+            image_url: imageUrl,
+            payment_type: paymentType,
+            cashback_rewards: cashbackRewards.map(cr => cr.toJson(extended))
+        }
+    
+        if (extended) {
+            const { paymentType, networkType, dateCreated, dateModified } = this
+            json.payment_type = paymentType
+            json.network_type = networkType
+            json.date_created = dateCreated
+            json.date_modified = dateModified
+        }
+        return json
+    }
 }
 exports.GlobalPaymentMethod = GlobalPaymentMethod

@@ -1,24 +1,10 @@
 const express = require("express")
 const Joi = require("joi")
 const { issuerFromBIN, issuerFromId, getAllIssuers, getAllIssuersPaymentMethods, binsFromIssuer, updateGlobalIssuer } = require("../../../../../src/db/wallet/global/issuer")
-const { getPaymentMethodsForIssuer, paymentMethodToJson } = require("../../../../../src/db/wallet/global/paymentmethod")
+const { getPaymentMethodsForIssuer } = require("../../../../../src/db/wallet/global/paymentmethod")
 const { determineInvalidKey } = require("../../../../../src/express")
 const { GlobalIssuer } = require("../../../../../src/models/GlobalIssuer")
 const router = express.Router()
-
-function issuerToJSON(issuer) {
-    const data = {
-        id: issuer.id,
-        name: issuer.name,
-        thumbnail_image_url: issuer.thumbnailImageUrl,
-        payment_methods: issuer.paymentMethods.map(item => paymentMethodToJson(item, false)),
-        bins: issuer.bins
-    }
-    if (!issuer.bins) {
-        delete issuer.bins
-    }
-    return data
-}
 
 router.get("/", async (req, res) => {
     const globalWalletDb = req.app.get("db").globalWallet
@@ -38,7 +24,7 @@ router.get("/", async (req, res) => {
             return issuer
         }))
     }
-    const issuersJson = issuers.map(issuerToJSON)
+    const issuersJson = issuers.map(i => i.toJson())
 
     res.json({
         success: true,
@@ -54,7 +40,7 @@ router.get("/paymentmethods", async (req, res) => {
     res.json({
         success: true,
         data: {
-            issuers: issuers.map(issuerToJSON)
+            issuers: issuers.map(i => i.toJson())
         }
     })
 })
@@ -73,7 +59,7 @@ router.get("/bin/:bin", async (req, res) => {
         res.json({
             success: true,
             data: {
-                issuer: issuerToJSON(issuer)
+                issuer: issuer.toJson()
             }
         })
     } catch (err) {
@@ -101,7 +87,7 @@ router.get("/id/:id", async (req, res) => {
         res.json({
             success: true,
             data: {
-                issuer: issuerToJSON(issuer)
+                issuer: issuer.toJson()
             }
         })
     } catch (err) {

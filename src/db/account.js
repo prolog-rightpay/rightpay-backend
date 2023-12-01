@@ -32,32 +32,13 @@ async function insertAccount(db, account, password) {
 }
 exports.insertAccount = insertAccount
 
-function accountFromBSON(bson) {
-    const { id, email,
-        first_name: firstName, last_name: lastName,
-        date_created: dateCreated, is_admin: isAdmin} = bson
-    const account = new Account(id, email, firstName, lastName, dateCreated, isAdmin)
-    return account
-}
-
-function sessionFromBSON(bson) {
-    const { token, account_id: accountId,
-        date_created: dateCreated, date_modified: dateModified, age,
-        ip_address: ipAddress, creation_source: creationSource,
-        is_active: active } = bson
-
-    const session = new Session(accountId, ipAddress, creationSource, dateCreated, dateModified, age, active)
-    session.token = token
-    return session
-}
-
 async function getAccountFromId(db, id) {
     const accountsColl = db.collection("accounts")
     const accountDoc = await accountsColl.findOne({ id: id })
     if (!accountDoc) {
         throw new Error("Account with ID does not exist")
     }
-    const account = accountFromBSON(accountDoc)
+    const account = Account.fromDoc(accountDoc)
     return account
 }
 
@@ -82,7 +63,7 @@ async function validatePassword(db, email, password) {
     // compare the bcrypt hash
     const validPassword = await bcrypt.compare(password, existing.password)
     if (validPassword) {
-        const account = accountFromBSON(existing)
+        const account = Account.fromDoc(existing)
         return {
             success: true,
             account: account
@@ -120,21 +101,21 @@ exports.insertSession = insertSession
 
 async function validateSessionToken(db, sessionToken) {
     const accountSessionsColl = db.collection("account_sessions")
-    const sessionBSON = await accountSessionsColl.findOne({ token: sessionToken })
-    if (!sessionBSON || !sessionBSON.account_id) {
+    const sessionDoc = await accountSessionsColl.findOne({ token: sessionToken })
+    if (!sessionDoc || !sessionDoc.account_id) {
         return null
     }
-    const session = sessionFromBSON(sessionBSON)
+    const session = Session.fromDoc(sessionDoc)
     if (!session.isValid()) {
         return null
     }
 
     const accountsColl = db.collection("accounts")
-    const accountBSON = await accountsColl.findOne({ id: session.accountId })
-    if (!accountBSON) {
+    const accountDoc = await accountsColl.findOne({ id: session.accountId })
+    if (!accountDoc) {
         return null
     }
-    const account = accountFromBSON(accountBSON)
+    const account = Account.fromDoc(accountDoc)
     return {
         session: session,
         account: account
