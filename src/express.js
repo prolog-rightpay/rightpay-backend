@@ -3,7 +3,7 @@
  * @param {object} Joi error object, the `error` attribute of the object returned by `schema.validate()`. 
  * @returns {string|null} Invalid key string or null.
  */
- function determineInvalidKey(error) {
+function determineInvalidKey(error) {
     if (error.details.length < 1) {
         return null
     }

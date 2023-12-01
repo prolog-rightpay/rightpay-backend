@@ -22,7 +22,7 @@ class RewardCondition {
      * @param {string} id If not given will create new UUIDv4.
      */
     constructor(id = null) {
-        id = id || uuidv4()
+        this.id = id || uuidv4()
     }
 
     /**
@@ -49,7 +49,7 @@ class RewardCondition {
 
     static fromDoc(doc) {
         const { id, type, location_category: locationCategory,
-        location_name_exclusions: locationNameExclusions, location_name: locationName, location_zip_code: locationZipCode } = doc
+            location_name_exclusions: locationNameExclusions, location_name: locationName, location_zip_code: locationZipCode } = doc
     
         const condition = new RewardCondition(id)
         if (type == "location_category") {

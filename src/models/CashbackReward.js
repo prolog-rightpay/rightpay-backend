@@ -63,15 +63,15 @@ class CashbackReward {
         isApproved = null,
         authorAccountId = null,
         approverAccountId = null) {
-            this.id = id || uuidv4()
-            this.isEnrollmentRequired = isEnrollmentRequired
-            this.isIntroductoryOffer = isIntroductoryOffer
-            this.dateCreated = dateCreated || new Date()
-            this.dateModified = dateModified
-            this.isApproved = isApproved
-            this.authorAccountId = authorAccountId
-            this.approverAccountId = approverAccountId
-        }
+        this.id = id || uuidv4()
+        this.isEnrollmentRequired = isEnrollmentRequired
+        this.isIntroductoryOffer = isIntroductoryOffer
+        this.dateCreated = dateCreated || new Date()
+        this.dateModified = dateModified
+        this.isApproved = isApproved
+        this.authorAccountId = authorAccountId
+        this.approverAccountId = approverAccountId
+    }
 
     /**
      * @param {boolean} isApproved Is the reward approved?
@@ -172,10 +172,10 @@ class CashbackReward {
 
     static fromDoc(doc) {
         const { id, date_created: dateCreated, date_modified: dateModified,
-        is_approved: isApproved, author_account_id: authorAccountId, approver_account_id: approverAccountId,
-        type, spending_min: spendingMin, spending_max: spendingMax, spending_cycle: spendingCycle, 
-        percentage, reimburse_amount: reimburseAmount,
-        is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = doc
+            is_approved: isApproved, author_account_id: authorAccountId, approver_account_id: approverAccountId,
+            type, spending_min: spendingMin, spending_max: spendingMax, spending_cycle: spendingCycle, 
+            percentage, reimburse_amount: reimburseAmount,
+            is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = doc
     
         const cashbackReward = new CashbackReward(id, isEnrollmentRequired, isIntroductoryOffer, dateCreated, dateModified)
         switch (type) {

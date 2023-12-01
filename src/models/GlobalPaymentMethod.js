@@ -55,8 +55,8 @@ class GlobalPaymentMethod {
 
     static fromDoc(doc) {
         const { id, payment_type: paymentType, network_type: networkType,
-        date_created: dateCreated, date_modified: dateModified, name, active,
-        image_url: imageUrl, issuer_id: issuerId } = doc
+            date_created: dateCreated, date_modified: dateModified, name, active,
+            image_url: imageUrl, issuer_id: issuerId } = doc
     
         const paymentMethod = new GlobalPaymentMethod(id, paymentType, networkType, name, issuerId, imageUrl, dateCreated, dateModified, active)
         return paymentMethod

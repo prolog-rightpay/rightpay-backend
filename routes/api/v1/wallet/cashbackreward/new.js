@@ -24,9 +24,9 @@ router.post("/", async (req, res) => {
         is_introductory_offer: Joi.boolean().required(),
         durations: Joi.array().items(
             Joi.object({
-            type: Joi.string().valid("date", "period").required(),
-            expiration_date: Joi.date().when("type", { is: "date", then: Joi.required() }),
-            period_days: Joi.number().when("type", { is: "period", then: Joi.required() }),
+                type: Joi.string().valid("date", "period").required(),
+                expiration_date: Joi.date().when("type", { is: "date", then: Joi.required() }),
+                period_days: Joi.number().when("type", { is: "period", then: Joi.required() }),
             })),
         conditions: Joi.array().items(
             Joi.object({
@@ -69,8 +69,8 @@ router.post("/", async (req, res) => {
     }
 
     const { payment_method_id: paymentMethodId, type, spending_min: spendingMin, spending_max: spendingMax, spending_cycle: spendingCycle, percentage,
-    reimburse_amount: reimburseAmount,
-    is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = req.body
+        reimburse_amount: reimburseAmount,
+        is_enrollment_required: isEnrollmentRequired, is_introductory_offer: isIntroductoryOffer } = req.body
 
     const durations = req.body.durations.reduce((items, item) => {
         const duration = new RewardDuration()

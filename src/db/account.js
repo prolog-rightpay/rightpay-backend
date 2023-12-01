@@ -41,6 +41,7 @@ async function getAccountFromId(db, id) {
     const account = Account.fromDoc(accountDoc)
     return account
 }
+exports.getAccountFromId = getAccountFromId
 
 /**
  * Validate a password using the user's ID.

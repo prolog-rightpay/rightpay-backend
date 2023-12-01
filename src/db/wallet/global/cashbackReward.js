@@ -1,5 +1,4 @@
 const { CashbackReward } = require("../../../models/CashbackReward")
-const { RewardDuration } = require("../../../models/RewardDuration")
 const { rewardConditionsForCashbackReward } = require("./rewardCondition")
 
 async function insertCashbackReward(db, cashbackReward, paymentMethodId) {

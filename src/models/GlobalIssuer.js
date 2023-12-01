@@ -1,5 +1,4 @@
 const { v4: uuidv4 } = require("uuid")
-const { GlobalPaymentMethod } = require("./GlobalPaymentMethod")
 
 /** Issuer of payment methods, e.g. Chase or American Express. Not to be confused with network such as Visa or Mastercard. */
 class GlobalIssuer {

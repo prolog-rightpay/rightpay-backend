@@ -22,7 +22,7 @@ async function insertGlobalPaymentMethod(db, globalPaymentMethod) {
     }
 
     // Check that issuer exists
-    const _ = await issuerFromId(db, issuerId)
+    await issuerFromId(db, issuerId)
     const doc = {
         id: id,
         payment_type: paymentType,

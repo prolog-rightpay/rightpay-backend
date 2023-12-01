@@ -4,17 +4,17 @@ function print(msg, level) {
 }
 
 function info(msg) {
-   print(msg, "info")
+    print(msg, "info")
 }
 exports.info = info
 
 function error(msg) {
     print(msg, "error")
- }
- exports.error = error
+}
+exports.error = error
 
  
- function warning(msg) {
+function warning(msg) {
     print(msg, "warning")
- }
- exports.warning = warning
+}
+exports.warning = warning

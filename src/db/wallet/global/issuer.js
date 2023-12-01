@@ -1,6 +1,3 @@
-const bcrypt = require("bcrypt")
-const { v4: uuidv4 } = require("uuid")
-
 const { GlobalIssuer } = require("../../../models/GlobalIssuer")
 const { GlobalPaymentMethod } = require("../../../models/GlobalPaymentMethod")
 
@@ -83,7 +80,7 @@ async function insertGlobalIssuer(db, issuer) {
     const issuersColl = db.collection("issuers")
     const issuerBinsColl = db.collection("issuer_bins")
     
-    const { id, name, thumbnailImageUrl, dateAdded } = issuer
+    const { id, name, thumbnailImageUrl, dateAdded, bins } = issuer
 
     const existingIssuer = await issuersColl.findOne({ name: name })
     if (existingIssuer) {
@@ -99,12 +96,12 @@ async function insertGlobalIssuer(db, issuer) {
     await issuersColl.insertOne(issuerDoc)
 
     // BINs
-    const existingBinsCur = await issuerBinsColl.find({ bin: { $in: issuer.bins } })
+    const existingBinsCur = await issuerBinsColl.find({ bin: { $in: bins } })
     const existingBins = (await existingBinsCur.toArray()).map(bin => bin.bin)
     if (existingBins.length > 0) {
         console.log(`[warning] discarding matching bins: ${existingBins}`)
     }
-    const filteredBins = issuer.bins.filter(bin => {
+    const filteredBins = bins.filter(bin => {
         return !existingBins.includes(bin)
     })
 
@@ -112,7 +109,7 @@ async function insertGlobalIssuer(db, issuer) {
         const binsDoc = filteredBins.map(bin => {
             return {
                 bin: bin,
-                issuer_id: issuer.id
+                issuer_id: id
             }
         })
         await issuerBinsColl.insertMany(binsDoc)
@@ -136,16 +133,16 @@ async function updateGlobalIssuer(db, issuer) {
     }
 
     // BINs
-    const binsCur = await issuerBinsColl.find({ issuer_id: issuer.id })
+    const binsCur = await issuerBinsColl.find({ issuer_id: id })
     const existingBins = await binsCur.toArray()
 
-    const binsToDelete = existingBins.filter(bin => { return !issuer.bins.includes(bin.bin) }).map(doc => { return { _id: doc._id } })
+    const binsToDelete = existingBins.filter(bin => { return !bins.includes(bin.bin) }).map(doc => { return { _id: doc._id } })
     if (binsToDelete.length > 0) {
         await issuerBinsColl.deleteMany({ $or: binsToDelete })
     }
 
-    const operations = issuer.bins.map(async bin => {
-        return await issuerBinsColl.updateOne({ bin: bin }, { $set: { issuer_id: issuer.id } }, { upsert: true })
+    const operations = bins.map(async bin => {
+        return await issuerBinsColl.updateOne({ bin: bin }, { $set: { issuer_id: id } }, { upsert: true })
     })
     await Promise.all(operations)
 }
