@@ -1,8 +1,7 @@
 const express = require("express")
 const router = express.Router()
 
-// /account endpoint requires session auth
-const { sessionAuth } = require("../../../src/middleware/auth")
+const { sessionAuth } = require("../../../../src/middleware/auth")
 router.use("/", sessionAuth)
 
 router.get("/", (req, res) => {
@@ -24,5 +23,8 @@ router.get("/", (req, res) => {
         }
     })
 })
+
+router.use("/wallet", require("./wallet/index"))
+router.use("/rewards", require("./rewards/index"))
 
 module.exports = router

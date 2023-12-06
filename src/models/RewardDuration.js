@@ -38,5 +38,14 @@ class RewardDuration {
         }
         return duration
     }
+
+    toJson() {
+        const { type, expirationDate, periodDays } = this
+        return {
+            type: type,
+            expiration_date: expirationDate,
+            period_days: periodDays
+        }
+    }
 }
 exports.RewardDuration = RewardDuration

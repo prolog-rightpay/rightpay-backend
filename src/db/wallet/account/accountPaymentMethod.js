@@ -1,6 +1,3 @@
-const { GlobalPaymentMethod } = require("../../../models/GlobalPaymentMethod")
-const { issuerFromId } = require("./issuer")
-
 async function insertGlobalPaymentMethod(db, globalPaymentMethod) {
     const { id, paymentType, networkType,
         dateCreated, dateModified, name, active, imageUrl, issuerId } = globalPaymentMethod
@@ -59,20 +56,3 @@ async function getPaymentMethods(db) {
     return paymentMethods
 } 
 exports.getPaymentMethods = getPaymentMethods
-
-async function getPaymentMethod(db, id) {
-    const paymentMethodsColl = db.collection("payment_methods")
-    const doc = await paymentMethodsColl.findOne({ id: id })
-    const paymentMethod = GlobalPaymentMethod.fromDoc(doc)
-    return paymentMethod
-}
-exports.getPaymentMethod = getPaymentMethod
-
-async function getPaymentMethodsForIssuer(db, issuer) {
-    const paymentMethodsColl = db.collection("payment_methods")
-    const resultsCur = paymentMethodsColl.find({ issuer_id: issuer.id })
-    const results = await resultsCur.toArray()
-    const paymentMethods = results.map(GlobalPaymentMethod.fromDoc)
-    return paymentMethods
-}
-exports.getPaymentMethodsForIssuer = getPaymentMethodsForIssuer

@@ -18,7 +18,7 @@ router.use("/", (req, res, next) => {
 router.use("/signin", require("./signin"))
 router.use("/signup", require("./signup"))
 router.use("/signout", require("./signout"))
-router.use("/account", require("./account"))
+router.use("/account", require("./account/index"))
 router.use("/wallet", require("./wallet"))
 
 module.exports = router

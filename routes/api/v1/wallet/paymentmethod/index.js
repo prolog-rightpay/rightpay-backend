@@ -1,7 +1,8 @@
 const express = require("express")
 const { getCashbackRewardsFromPaymentMethod } = require("../../../../../src/db/wallet/global/cashbackReward")
 const { issuerFromId } = require("../../../../../src/db/wallet/global/issuer")
-const { getPaymentMethods } = require("../../../../../src/db/wallet/global/paymentmethod")
+const { getPaymentMethods, getPaymentMethod } = require("../../../../../src/db/wallet/global/paymentmethod")
+const { isAdmin } = require("../../../../../src/middleware/admin")
 const router = express.Router()
 
 router.use("/new", require("./new"))
@@ -53,3 +54,26 @@ router.get("/", async (req, res) => {
 })
 
 exports.router = router
+
+router.use("/", isAdmin)
+router.get("/:id/cashbackrewards", async (req, res) => {
+    const globalWalletDb = req.app.get("db").globalWallet
+
+    const { id } = req.params
+    const paymentMethod = await getPaymentMethod(globalWalletDb, id)
+    if (!paymentMethod) {
+        res.status(422).json({
+            success: false,
+            message: "Invalid payment method ID"
+        })
+        return
+    }
+    const rewards = await getCashbackRewardsFromPaymentMethod(globalWalletDb, paymentMethod)
+    const rewardsJson = rewards.map(r => r.toJson(true))
+    res.json({
+        success: true,
+        data: {
+            cashback_rewards: rewardsJson
+        }
+    })
+})

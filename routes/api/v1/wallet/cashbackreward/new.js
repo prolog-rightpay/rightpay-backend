@@ -18,35 +18,36 @@ router.post("/", async (req, res) => {
         spending_min: Joi.number().required(),
         spending_max: Joi.number().required(),
         spending_cycle: Joi.string().valid("annually", "quarterly", "monthly", "daily", "cycle").required(),
-        percentage: Joi.number().when("type", { is: "percentage", then: Joi.required() }),
-        reimburse_amount: Joi.number().when("type", { is: "reimburse", then: Joi.required() }),
+        percentage: Joi.number().when("location_type", { is: "percentage", then: Joi.required() }),
+        reimburse_amount: Joi.number().when("location_type", { is: "reimburse", then: Joi.required() }),
         is_enrollment_required: Joi.boolean().required(),
         is_introductory_offer: Joi.boolean().required(),
         durations: Joi.array().items(
             Joi.object({
                 type: Joi.string().valid("date", "period").required(),
-                expiration_date: Joi.date().when("type", { is: "date", then: Joi.required() }),
-                period_days: Joi.number().when("type", { is: "period", then: Joi.required() }),
+                expiration_date: Joi.date().when("location_type", { is: "date", then: Joi.required() }),
+                period_days: Joi.number().when("location_type", { is: "period", then: Joi.required() }),
             })),
         conditions: Joi.array().items(
             Joi.object({
-                type: Joi.string().valid("location", "location_category").required(),
-                location_name: Joi.when("type", {
+                type: Joi.string().valid("inclusion", "exclusion").required(),
+                location_type: Joi.string().valid("location", "location_category").required(),
+                location_name: Joi.when("location_type", {
                     is: "location",
                     then: Joi.string().required(),
                     otherwise: Joi.forbidden()
                 }),
-                location_zip_code: Joi.when("type", {
+                location_zip_code: Joi.when("location_type", {
                     is: "location",
                     then: Joi.string().allow(null).optional(),
                     otherwise: Joi.forbidden()
                 }),
-                location_category: Joi.when("type", {
+                location_category: Joi.when("location_type", {
                     is: "location_category",
                     then: Joi.string().required(),
                     otherwise: Joi.forbidden()
                 }),
-                location_name_exclusions: Joi.when("type", {
+                location_name_exclusions: Joi.when("location_type", {
                     is: "location_category",
                     then: Joi.array().items(Joi.string()).default([]),
                     otherwise: Joi.array().forbidden()
@@ -88,8 +89,19 @@ router.post("/", async (req, res) => {
         return items
     }, [])
 
+    const conditions = req.body.conditions.map(data => {
+        const condition = new RewardCondition(null, data.type)
+        if (data.location_type == "location") {
+            condition.setLocation(data.location_name, data.location_zip_code)
+        } else if (data.location_type == "location_category") {
+            condition.setLocationCategory(data.location_category, data.location_name_exclusions)
+        }
+        return condition
+    })
+
     const reward = new CashbackReward(null, isEnrollmentRequired, isIntroductoryOffer, null, null, true,
         req.app.account.id, null)
+
     switch (type) {
         case "percentage":
             reward.setTypePercentage(percentage, spendingMin, spendingMax, spendingCycle)
@@ -99,34 +111,13 @@ router.post("/", async (req, res) => {
             break
     }
     reward.durations = durations
+    reward.conditions = conditions
 
     const globalWalletDb = req.app.get("db").globalWallet
 
     // insert cashback rewards
     try {
         await insertCashbackReward(globalWalletDb, reward, paymentMethodId)
-    } catch (err) {
-        console.log(err)
-        res.status(422).json({
-            success: false,
-            message: err.message
-        })
-        return
-    }
-
-    // insert conditions
-    const conditions = req.body.conditions.map(data => {
-        const condition = new RewardCondition()
-        if (data.type == "location") {
-            condition.setLocation(data.location_name, data.location_zip_code)
-        } else if (data.type == "location_category") {
-            condition.setLocationCategory(data.location_category, data.location_name_exclusions)
-        }
-        return condition
-    })
-
-    try {
-        await insertManyRewardConditions(globalWalletDb, conditions, reward.id)
         res.json({
             success: true
         })

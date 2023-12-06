@@ -1,12 +1,13 @@
 const { RewardCondition } = require("../../../models/RewardCondition")
 
 function docForRewardCondition(rewardCondition, cashbackRewardId) {
-    const { id, type, locationCategory, locationNameExclusions, locationName, locationZipCode } = rewardCondition
+    const { id, type, locationType, locationCategory, locationNameExclusions, locationName, locationZipCode } = rewardCondition
 
     const doc = {
         id: id,
         cashback_reward_id: cashbackRewardId,
         type: type,
+        location_type: locationType,
         location_category: locationCategory,
         location_name_exclusions: locationNameExclusions,
         location_name: locationName,
@@ -24,7 +25,10 @@ async function insertRewardCondition(db, rewardCondition, cashbackRewardId) {
 exports.insertRewardCondition = insertRewardCondition
 
 async function insertManyRewardConditions(db, rewardConditions, cashbackRewardId) {
+    console.log(rewardConditions)
     const docs = rewardConditions.map(condition => docForRewardCondition(condition, cashbackRewardId) )
+    console.log(docs)
+    
     const rewardConditionsColl = db.collection("cashback_reward_conditions")
     await rewardConditionsColl.insertMany(docs)
 }

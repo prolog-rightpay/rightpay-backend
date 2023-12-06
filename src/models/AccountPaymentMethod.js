@@ -6,7 +6,7 @@ class AccountPaymentMethod {
     id = null
     /** @type {string} Weak reference to parent account by ID. */
     accountId = null
-    /** @type {GlobalPaymentMethod} Global payment method. */
+    /** @type {string} Global payment method. */
     globalPaymentMethod = null
     
     /** @type {date} Date when the payment method was added. */
@@ -28,10 +28,10 @@ class AccountPaymentMethod {
      * @param {string?} name 
      * @param {string?} note 
      */
-    constructor(id, accountId, globalPaymentMethod, bin, dateAdded = null, name = null, note = null) {
+    constructor(id, accountId, globalPaymentMethodId, bin, dateAdded = null, name = null, note = null) {
         this.id = id || uuidv4()
         this.accountId = accountId
-        this.globalPaymentMethod = globalPaymentMethod
+        this.globalPaymentMethodId = globalPaymentMethodId
         this.bin = bin
         this.dateAdded = dateAdded || new Date()
         this.name = name

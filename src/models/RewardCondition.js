@@ -4,7 +4,9 @@ const { v4: uuidv4 } = require("uuid")
 class RewardCondition {
     /** @type {string} UUIDv4 ID of the reward condition. Useful for database. */
     id = null
-    /** @type {string} Type reward, `location_category` or `location`. */
+    /** @type {string} Location type, `location_category` or `location`. */
+    locationType = null
+    /** @type {string} Rule type, `inclusion` or `exclusion` */
     type = null
 
     /** @type {string} Location category, applicable when of type `location_category`.  */
@@ -21,8 +23,9 @@ class RewardCondition {
      * Once initialized use `setLocationCategory` or `setLocation`.
      * @param {string} id If not given will create new UUIDv4.
      */
-    constructor(id = null) {
+    constructor(id, type) {
         this.id = id || uuidv4()
+        this.type = type
     }
 
     /**
@@ -31,7 +34,7 @@ class RewardCondition {
      * @param {[string]} nameExclusions Specific name exclusions from the category (e.g. exclude Walmart from all grocery stores).
      */
     setLocationCategory(category, nameExclusions) {
-        this.type = "location_category"
+        this.locationType = "location_category"
         this.locationCategory = category
         this.locationNameExclusions = nameExclusions
     }
@@ -42,23 +45,35 @@ class RewardCondition {
      * @param {string} zipCode Specific ZIP code of the business. Not including will exclude all businesses with a similar name.
      */
     setLocation(name, zipCode = null) {
-        this.type = "location"
+        this.locationType = "location"
         this.locationName = name
         this.locationZipCode = zipCode
     }
 
     static fromDoc(doc) {
-        const { id, type, location_category: locationCategory,
+        const { id, type, location_category: locationCategory, location_type: location_type,
             location_name_exclusions: locationNameExclusions, location_name: locationName, location_zip_code: locationZipCode } = doc
     
-        const condition = new RewardCondition(id)
-        if (type == "location_category") {
+        const condition = new RewardCondition(id, type)
+        if (location_type == "location_category") {
             condition.setLocationCategory(locationCategory, locationNameExclusions)
-        } else if (type == "location") {
+        } else if (location_type == "location") {
             condition.setLocation(locationName, locationZipCode)
         }
     
         return condition
+    }
+
+    toJson() {
+        const { type, locationType, locationCategory, locationNameExclusions, locationName, locationZipCode } = this
+        return {
+            type: type,
+            location_type: locationType,
+            location_category: locationCategory,
+            location_name_exclusions: locationNameExclusions,
+            location_name: locationName,
+            location_zip_code: locationZipCode
+        }
     }
 }
 exports.RewardCondition = RewardCondition

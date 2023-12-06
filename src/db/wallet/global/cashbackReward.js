@@ -1,13 +1,11 @@
 const { CashbackReward } = require("../../../models/CashbackReward")
-const { rewardConditionsForCashbackReward } = require("./rewardCondition")
+const { rewardConditionsForCashbackReward, insertManyRewardConditions } = require("./rewardCondition")
 
 async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
     const { id, dateCreated, dateModified,
         isApproved, authorAccountId, approverAccountId,
         type, spendingMin, spendingMax, spendingCycle,
-        percentage, reimburseAmount, isEnrollmentRequired, isIntroductoryOffer, durations } = cashbackReward
-
-    console.log("TODO!!!! pull conditions from db!!!")
+        percentage, reimburseAmount, isEnrollmentRequired, isIntroductoryOffer, durations, conditions } = cashbackReward
 
     const cashbackRewardsColl = db.collection("cashback_rewards")
 
@@ -49,8 +47,10 @@ async function insertCashbackReward(db, cashbackReward, paymentMethodId) {
         is_introductory_offer: isIntroductoryOffer,
         durations: durationsDoc
     }
-    await cashbackRewardsColl.insertOne(cashbackRewardsDoc)    
+    await cashbackRewardsColl.insertOne(cashbackRewardsDoc)
+    await insertManyRewardConditions(db, conditions, id)
 }
+
 exports.insertCashbackReward = insertCashbackReward
 
 async function getCashbackReward(db, id) {

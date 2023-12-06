@@ -9,7 +9,6 @@ const { Account } = require("../../../src/models/Account")
 const passwordRegex = new RegExp("^[a-zA-Z0-9]{3,30}$")
 
 router.post("/", async (req, res) => {
-    console.log(req.body)
     const schema = Joi.object({
         email: Joi.string().required(),
         password: Joi.string().pattern(passwordRegex).required(),

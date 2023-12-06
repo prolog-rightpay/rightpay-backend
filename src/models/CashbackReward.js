@@ -128,24 +128,8 @@ class CashbackReward {
             spendingMin, spendingMax, spendingCycle, percentage,
             reimburseAmount, isEnrollmentRequired, isIntroductoryOffer, conditions, durations } = this
     
-        const jsonConditions = conditions.map(condition => {
-            const { type, locationCategory, locationNameExclusions, locationName, locationZipCode } = condition
-            return {
-                type: type,
-                location_category: locationCategory,
-                location_name_exclusions: locationNameExclusions,
-                location_name: locationName,
-                location_zip_code: locationZipCode
-            }
-        })
-        const jsonDurations = durations.map(duration => {
-            const { type, expirationDate, periodDays } = duration
-            return {
-                type: type,
-                expiration_date: expirationDate,
-                period_days: periodDays
-            }
-        })
+        const jsonConditions = conditions.map(c => c.toJson())
+        const jsonDurations = durations.map(d => d.toJson())
         const data = {
             id: id,
             payment_method_id: paymentMethodId,
